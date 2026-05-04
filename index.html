@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FigurinhaOp — Copa 2026</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:#0d1117;color:#e6edf3;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;flex-direction:column;gap:12px;
+  }
+  .ico{font-size:2.5rem;}
+  p{font-size:0.9rem;color:#7d8590;}
+</style>
+</head>
+<body>
+  <div class="ico">⚽</div>
+  <p>Abrindo FigurinhaOp...</p>
+  <script>
+    // Detecta celular/tablet → versão iPhone
+    // Computador → versão desktop
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      window.location.replace('./FigurinhaOp_iPhone.html');
+    } else {
+      window.location.replace('./FigurinhaOp_v8.html');
+    }
+  </script>
+</body>
+</html>

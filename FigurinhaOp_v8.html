@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FigurinhaOp — Copa 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--borda:#30363d;--texto:#e6edf3;--texto2:#7d8590;--verde:#3fb950;--verde-d:#238636;--amarelo:#d29922;--amarelo-l:#e3b341;--azul:#388bfd;--roxo:#8957e5;--vermelho:#f85149;--cyan:#39d353;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,sans-serif;min-height:100vh;font-size:14px;}
+#tela-setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.setup-card{background:var(--bg2);border:1px solid var(--borda);border-radius:12px;padding:36px 40px;width:100%;max-width:600px;}
+.setup-logo{font-family:'Archivo Black',sans-serif;font-size:1.5rem;color:var(--amarelo-l);margin-bottom:4px;}
+.setup-sub{font-size:0.72rem;color:var(--texto2);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:24px;}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.campo{display:flex;flex-direction:column;gap:6px;}
+.campo-full{grid-column:1/-1;}
+.campo label{font-size:0.68rem;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--texto2);display:flex;align-items:center;gap:8px;}
+.salvo-badge{font-size:0.58rem;padding:1px 6px;border-radius:3px;background:rgba(63,185,80,0.15);color:var(--verde);border:1px solid rgba(63,185,80,0.3);}
+.campo input,.campo textarea{background:var(--bg3);border:1px solid var(--borda);border-radius:6px;color:var(--texto);font-family:'JetBrains Mono',monospace;font-size:0.85rem;padding:9px 12px;outline:none;transition:border-color 0.15s;width:100%;}
+.campo input:focus,.campo textarea:focus{border-color:var(--amarelo);}
+.campo textarea{resize:vertical;min-height:68px;font-size:0.78rem;}
+.info-calc{background:var(--bg3);border:1px solid var(--borda);border-radius:6px;padding:9px 12px;font-family:'Archivo Black',sans-serif;font-size:1rem;color:var(--amarelo-l);}
+.setup-hint{font-size:0.68rem;color:var(--texto2);font-family:'JetBrains Mono',monospace;}
+.esp-row{display:flex;gap:8px;}
+.esp-row input{flex:1;}
+.btn-sm{padding:9px 12px;background:var(--bg3);border:1px solid var(--borda);border-radius:6px;color:var(--texto2);font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.btn-sm:hover{border-color:var(--amarelo);color:var(--amarelo-l);}
+.btn-iniciar{width:100%;padding:13px;background:var(--amarelo);color:#000;border:none;border-radius:8px;font-family:'Archivo Black',sans-serif;font-size:1rem;letter-spacing:1px;cursor:pointer;margin-top:18px;transition:all 0.15s;}
+.btn-iniciar:hover{background:var(--amarelo-l);transform:translateY(-1px);}
+.guia-servidor{margin-top:20px;background:var(--bg3);border:1px solid var(--borda);border-radius:8px;overflow:hidden;}
+.guia-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.guia-header:hover{background:rgba(255,255,255,0.03);}
+.guia-titulo{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--amarelo-l);letter-spacing:1px;}
+.guia-corpo{display:none;padding:14px;border-top:1px solid var(--borda);}
+.guia-corpo.aberto{display:block;}
+.guia-passo{margin-bottom:14px;}
+.guia-passo:last-child{margin-bottom:0;}
+.guia-passo-titulo{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.guia-passo p{font-size:0.78rem;color:var(--texto2);line-height:1.6;margin-bottom:6px;}
+.guia-passo p b{color:var(--texto);}
+.code-block{background:var(--bg);border:1px solid var(--borda);border-radius:4px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--cyan);display:block;margin:4px 0;}
+#tela-app{display:none;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--borda);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.topbar-logo{font-family:'Archivo Black',sans-serif;font-size:1rem;color:var(--amarelo-l);}
+.topbar-info{font-family:'JetBrains Mono',monospace;font-size:0.7rem;color:var(--texto2);display:flex;gap:16px;margin-left:16px;}
+.topbar-info b{color:var(--texto);font-weight:400;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--borda);background:transparent;color:var(--texto2);font-family:'JetBrains Mono',monospace;font-size:0.72rem;cursor:pointer;transition:all 0.15s;}
+.btn:hover{border-color:var(--texto2);color:var(--texto);}
+.btn-danger{border-color:var(--vermelho);color:var(--vermelho);}
+.btn-danger:hover{background:var(--vermelho);color:#fff;}
+.btn-primary{background:var(--verde-d);border-color:var(--verde-d);color:#fff;}
+.btn-primary:hover{background:var(--verde);border-color:var(--verde);}
+.app-body{display:grid;grid-template-columns:1fr 300px;grid-template-rows:auto 1fr;height:calc(100vh - 49px);}
+.stats-bar{grid-column:1/-1;background:var(--bg2);border-bottom:1px solid var(--borda);padding:10px 20px;display:flex;gap:24px;overflow-x:auto;flex-shrink:0;}
+.stat{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--texto2);}
+.stat-val{font-family:'Archivo Black',sans-serif;font-size:1.3rem;line-height:1;}
+.stat-val.verde{color:var(--verde);}
+.stat-val.amarelo{color:var(--amarelo-l);}
+.stat-val.roxo{color:var(--roxo);}
+.stat-val.azul{color:var(--azul);}
+.stat-val.alerta{color:var(--vermelho);}
+.stat-val.cinza{color:var(--texto2);}
+.stat-sep{width:1px;background:var(--borda);align-self:stretch;margin:0 4px;}
+.main-panel{overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px;}
+.main-panel::-webkit-scrollbar{width:4px;}
+.main-panel::-webkit-scrollbar-thumb{background:var(--borda);border-radius:2px;}
+.input-card{background:var(--bg2);border:1px solid var(--borda);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;}
+.mic-row{display:flex;align-items:center;gap:12px;}
+.mic-btn{width:52px;height:52px;border-radius:50%;border:2px solid var(--borda);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;transition:all 0.2s;flex-shrink:0;outline:none;}
+.mic-btn:hover{border-color:var(--amarelo);}
+.mic-btn.ouvindo{border-color:var(--vermelho);background:rgba(248,81,73,0.1);animation:pulse 1.4s ease-in-out infinite;}
+.mic-btn.pausado{border-color:var(--amarelo-l);background:rgba(210,153,34,0.08);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,0.3)}50%{box-shadow:0 0 0 12px rgba(248,81,73,0)}}
+.transcricao{flex:1;background:var(--bg3);border:1px solid var(--borda);border-radius:6px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--texto2);min-height:52px;line-height:1.5;display:flex;align-items:center;}
+.transcricao.ativa{border-color:rgba(248,81,73,0.4);color:var(--amarelo-l);}
+.teclado-row{display:flex;gap:8px;align-items:center;}
+.teclado-label{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--texto2);flex-shrink:0;}
+.teclado-input{background:var(--bg3);border:1px solid var(--borda);border-radius:6px;color:var(--texto);font-family:'JetBrains Mono',monospace;font-size:0.95rem;padding:7px 12px;width:110px;outline:none;text-align:center;text-transform:uppercase;transition:border-color 0.15s;}
+.teclado-input:focus{border-color:var(--azul);}
+.teclado-input:disabled{opacity:0.35;cursor:not-allowed;}
+.btn-processar{padding:7px 16px;background:var(--azul);border:none;border-radius:6px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;transition:all 0.15s;}
+.btn-processar:hover{background:#5a9fff;}
+.btn-processar:disabled{opacity:0.35;cursor:not-allowed;}
+.chips-hint{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{font-family:'JetBrains Mono',monospace;font-size:0.6rem;padding:2px 8px;border-radius:4px;background:var(--bg3);border:1px solid var(--borda);color:var(--texto2);}
+.chip em{color:var(--amarelo-l);font-style:normal;}
+.secao-titulo{font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--texto2);margin-bottom:8px;}
+.kits-wrap{display:flex;flex-direction:column;gap:8px;}
+.kit-card{background:var(--bg2);border:1px solid var(--borda);border-radius:10px;overflow:hidden;transition:border-color 0.2s;}
+.kit-card.ativo{border-color:var(--verde-d);}
+.kit-card.futuro{border-color:rgba(56,139,253,0.25);}
+.kit-card.completo{opacity:0.65;}
+.kit-header{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--borda);cursor:default;}
+.kit-card.completo .kit-header{cursor:pointer;}
+.kit-card.completo .kit-header:hover{background:rgba(255,255,255,0.02);}
+.kit-nome{font-family:'Archivo Black',sans-serif;font-size:0.85rem;display:flex;align-items:center;gap:8px;}
+.kit-tag{font-size:0.58rem;padding:2px 7px;border-radius:3px;font-family:'JetBrains Mono',monospace;}
+.kit-tag.atual{background:rgba(63,185,80,0.12);color:var(--verde);border:1px solid rgba(63,185,80,0.25);}
+.kit-tag.futuro{background:rgba(56,139,253,0.12);color:var(--azul);border:1px solid rgba(56,139,253,0.25);}
+.kit-tag.ok{background:rgba(125,133,144,0.12);color:var(--texto2);border:1px solid var(--borda);}
+.kit-prog{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--texto2);display:flex;align-items:center;gap:8px;}
+.kit-expandir{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--texto2);padding:2px 6px;border-radius:3px;border:1px solid var(--borda);background:var(--bg3);}
+.kit-barra{height:3px;background:var(--bg3);}
+.kit-barra-fill{height:100%;background:linear-gradient(90deg,var(--verde-d),var(--verde));transition:width 0.35s ease;}
+.kit-figs{padding:8px 14px;display:flex;flex-wrap:wrap;gap:4px;max-height:90px;overflow-y:auto;}
+.kit-figs::-webkit-scrollbar{width:3px;}
+.kit-figs::-webkit-scrollbar-thumb{background:var(--borda);}
+.kit-figs-expandida{padding:10px 14px;border-top:1px solid var(--borda);display:none;}
+.kit-figs-expandida.aberta{display:flex;flex-wrap:wrap;gap:4px;max-height:200px;overflow-y:auto;}
+.fig-chip{font-family:'JetBrains Mono',monospace;font-size:0.68rem;padding:2px 6px;border-radius:4px;background:var(--bg3);border:1px solid var(--borda);color:var(--texto);}
+.fig-chip.novo{border-color:var(--verde-d);color:var(--verde);background:rgba(63,185,80,0.07);animation:popIn 0.18s cubic-bezier(0.34,1.56,0.64,1);}
+.fig-chip.hist{border-color:var(--borda);color:var(--texto2);background:transparent;}
+@keyframes popIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
+.especiais-card{background:var(--bg2);border:1px solid rgba(137,87,229,0.35);border-radius:10px;overflow:hidden;}
+.especiais-header{padding:9px 14px;border-bottom:1px solid rgba(137,87,229,0.2);display:flex;align-items:center;justify-content:space-between;background:rgba(137,87,229,0.05);}
+.especiais-titulo{font-family:'Archivo Black',sans-serif;font-size:0.85rem;color:var(--roxo);}
+.especiais-figs{padding:8px 14px;display:flex;flex-wrap:wrap;gap:4px;}
+.fig-especial{font-family:'JetBrains Mono',monospace;font-size:0.68rem;padding:2px 7px;border-radius:4px;background:rgba(137,87,229,0.1);border:1px solid rgba(137,87,229,0.35);color:var(--roxo);animation:popIn 0.18s cubic-bezier(0.34,1.56,0.64,1);}
+.side-panel{border-left:1px solid var(--borda);overflow-y:auto;display:flex;flex-direction:column;}
+.side-panel::-webkit-scrollbar{width:4px;}
+.side-panel::-webkit-scrollbar-thumb{background:var(--borda);border-radius:2px;}
+.side-sec{border-bottom:1px solid var(--borda);}
+.side-header{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;background:var(--bg2);}
+.side-titulo{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--texto2);}
+.log-area{padding:6px 12px;max-height:300px;overflow-y:auto;font-family:'JetBrains Mono',monospace;}
+.log-area::-webkit-scrollbar{width:3px;}
+.log-area::-webkit-scrollbar-thumb{background:var(--borda);}
+.log-item{font-size:0.65rem;padding:5px 0;border-bottom:1px solid rgba(48,54,61,0.4);color:var(--texto2);line-height:1.4;display:flex;gap:6px;}
+.log-item:last-child{border-bottom:none;}
+.log-item .lt{opacity:0.4;font-size:0.58rem;display:block;}
+.log-item.ok{color:var(--verde);}
+.log-item.rep{color:var(--amarelo-l);}
+.log-item.esp{color:var(--roxo);}
+.log-item.ext{color:var(--texto2);}
+.log-item.cmd{color:var(--azul);}
+.log-item.kit-done{color:var(--cyan);}
+.side-actions{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.15s;outline:none;}
+.overlay.vis{opacity:1;pointer-events:all;}
+.popup{background:var(--bg2);border-radius:14px;padding:24px 28px;max-width:420px;width:90%;text-align:center;position:relative;overflow:hidden;animation:popupIn 0.2s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes popupIn{from{transform:scale(0.88) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.popup.tipo-rep{border:2px solid var(--amarelo);}
+.popup.tipo-rep::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--amarelo);}
+.popup.tipo-esp{border:2px solid var(--roxo);}
+.popup.tipo-esp::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--roxo);}
+.popup.tipo-kit{border:2px solid var(--verde);}
+.popup.tipo-kit::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--verde);}
+.popup-icone{font-size:1.8rem;margin-bottom:4px;}
+.popup-titulo{font-family:'Archivo Black',sans-serif;font-size:1.1rem;margin-bottom:8px;}
+.popup-fig-num{font-family:'Archivo Black',sans-serif;font-size:3.2rem;line-height:1;color:var(--amarelo-l);margin:4px 0;letter-spacing:2px;}
+.popup-destino{font-family:'Archivo Black',sans-serif;font-size:2rem;line-height:1.1;margin:8px 0 12px;}
+.popup-destino.kit{color:var(--azul);}
+.popup-destino.esp{color:var(--roxo);}
+.popup-destino.done{color:var(--verde);font-size:1.4rem;line-height:1.3;}
+.popup-hint{font-size:0.68rem;color:var(--texto2);font-family:'JetBrains Mono',monospace;margin-bottom:12px;}
+.popup-btns{display:flex;gap:8px;justify-content:center;}
+.popup-btn{padding:9px 24px;border-radius:6px;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;transition:all 0.15s;}
+.pb-amarelo{background:var(--amarelo);color:#000;}
+.pb-amarelo:hover{background:var(--amarelo-l);}
+.pb-roxo{background:var(--roxo);color:#fff;}
+.pb-verde{background:var(--verde-d);color:#fff;}
+.pb-verde:hover{background:var(--verde);}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--verde-d);border-radius:8px;padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--verde);z-index:200;opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none;}
+.toast.vis{opacity:1;transform:translateY(0);}
+.toast.warn{border-color:var(--vermelho);color:var(--vermelho);}
+.vazio{font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--borda);text-align:center;padding:16px 0;}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="tela-setup">
+  <div class="setup-card">
+    <div class="setup-logo">⚽ FigurinhaOp</div>
+    <div class="setup-sub">CONFIGURAÇÃO DO LOTE — COPA 2026</div>
+    <div class="setup-grid">
+      <div class="campo">
+        <label>Operador</label>
+        <input type="text" id="cfg-operador" placeholder="Nome do operador">
+      </div>
+      <div class="campo">
+        <label>Número do Lote</label>
+        <input type="number" id="cfg-lote" value="1" min="1">
+      </div>
+      <div class="campo">
+        <label>Figurinhas por Kit</label>
+        <input type="number" id="cfg-kit" value="50" min="1" oninput="recalcularKits()">
+      </div>
+      <div class="campo">
+        <label>Pacotes no Lote</label>
+        <input type="number" id="cfg-pacotes" value="100" min="1" oninput="recalcularKits()">
+      </div>
+      <div class="campo campo-full" style="flex-direction:row;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--borda);border-radius:6px;padding:9px 14px;">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;">Kits Esperados</span>
+        <span id="kits-esperados-calc" style="font-family:'Archivo Black',sans-serif;font-size:1.1rem;color:var(--amarelo-l)">14</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--borda);margin-left:auto">calculado · 7 fig/pacote</span>
+      </div>
+      <div class="campo campo-full">
+        <label>Figurinhas Especiais <span class="salvo-badge" id="esp-salvo-badge" style="display:none">✓ salvo</span></label>
+        <div class="esp-row">
+          <input type="text" id="cfg-especiais" placeholder="ex: BRA10, POR15, ARG10 — salvo automaticamente">
+          <button class="btn-sm" onclick="limparEspeciais()">✕ limpar</button>
+        </div>
+      </div>
+      <div class="campo campo-full">
+        <label>Kits em formação do lote anterior</label>
+        <textarea id="cfg-estoque" placeholder="Deixe vazio no primeiro lote. Cole o conteúdo exportado ou use o botão abaixo.&#10;Formato: KIT2:BRA1,POR15,ARG7 | KIT3:ESP3,FRA10&#10;As figurinhas entram direto no Kit 1 deste lote."></textarea>
+        <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+          <input type="file" id="file-estado" accept=".txt" style="display:none" onchange="lerArquivoEstado(event)">
+          <button class="btn-sm" onclick="document.getElementById('file-estado').click()">📂 Importar arquivo .txt</button>
+          <span class="setup-hint">ou cole o conteúdo acima</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-iniciar" onclick="iniciarLote()">▶ INICIAR LOTE</button>
+    <div class="guia-servidor">
+      <div class="guia-header" onclick="toggleGuia()">
+        <span class="guia-titulo">⚠️ MICROFONE NÃO FUNCIONA? — clique aqui</span>
+        <span id="guia-seta">▼</span>
+      </div>
+      <div class="guia-corpo" id="guia-corpo">
+        <div class="guia-passo">
+          <div class="guia-passo-titulo">✅ Solução — duplo clique no .bat</div>
+          <p>Na mesma pasta está o arquivo <b>Iniciar_FigurinhaOp.bat</b>. Dê duplo clique — abre o servidor e lança o Chrome automaticamente. Clique em <b>Permitir</b> quando pedir o microfone.</p>
+        </div>
+        <div class="guia-passo">
+          <div class="guia-passo-titulo">⚠️ Se aparecer "Windows protegeu seu PC"</div>
+          <p>Clique em <b>"Mais informações"</b> → <b>"Executar assim mesmo"</b>.</p>
+        </div>
+        <div class="guia-passo">
+          <div class="guia-passo-titulo">❌ Se o Chrome não abrir sozinho</div>
+          <code class="code-block">http://localhost:8080/FigurinhaOp_v8.html</code>
+        </div>
+        <div class="guia-passo">
+          <div class="guia-passo-titulo">❌ Se der erro "python não reconhecido"</div>
+          <p>Instale em <b>python.org</b> marcando <b>"Add Python to PATH"</b>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="tela-app">
+  <div class="topbar">
+    <div style="display:flex;align-items:center">
+      <div class="topbar-logo">⚽ FigurinhaOp</div>
+      <div class="topbar-info">
+        <span>Lote <b id="top-lote">—</b></span>
+        <span>Operador: <b id="top-operador">—</b></span>
+        <span id="top-hora" style="color:var(--texto2)">—</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn" onclick="exportarExcel()">↓ Excel</button>
+      <button class="btn" onclick="exportarEstado()">↓ Estado</button>
+      <button class="btn btn-danger" onclick="encerrarLote()">⏹ Encerrar</button>
+    </div>
+  </div>
+  <div class="app-body">
+    <div class="stats-bar">
+      <div class="stat"><span class="stat-label">Processadas</span><span class="stat-val azul" id="s-proc">0</span></div>
+      <div class="stat"><span class="stat-label">Pacotes (~)</span><span class="stat-val cinza" id="s-pac">0</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-label">Kit Atual</span><span class="stat-val verde" id="s-kit-atual">0/50</span></div>
+      <div class="stat"><span class="stat-label">Kits Prontos</span><span class="stat-val verde" id="s-prontos">0</span></div>
+      <div class="stat"><span class="stat-label">Esperados</span><span class="stat-val cinza" id="s-esp-num">—</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-label">Em Fila</span><span class="stat-val amarelo" id="s-fila">0</span></div>
+      <div class="stat"><span class="stat-label">Especiais</span><span class="stat-val roxo" id="s-esp">0</span></div>
+      <div class="stat"><span class="stat-label">Extras</span><span class="stat-val cinza" id="s-ext">0</span></div>
+    </div>
+    <div class="main-panel">
+      <div class="input-card">
+        <div class="mic-row">
+          <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="ESPAÇO">🎙️</button>
+          <div style="display:flex;flex-direction:column;flex:1;gap:4px;">
+            <div class="transcricao" id="transcricao">Pressione ESPAÇO ou clique no microfone...</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--texto2);">MOTOR:</span>
+              <span id="motor-badge" style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--texto2);" title="Motor de voz ativo">WEB</span>
+            </div>
+          </div>
+        </div>
+        <div class="teclado-row">
+          <span class="teclado-label">TECLADO →</span>
+          <input type="text" class="teclado-input" id="teclado-input" placeholder="BRA17" maxlength="8" onkeydown="tecladoKeydown(event)" oninput="this.value=this.value.toUpperCase()">
+          <button class="btn-processar" id="btn-processar" onclick="tecladoProcessar()">ENTER ↵</button>
+        </div>
+        <div class="chips-hint">
+          <div class="chip">voz: <em>"Brasil dezessete"</em></div>
+          <div class="chip"><em>"extra"</em> / <em>"especial"</em> → extras</div>
+          <div class="chip"><em>"voltar"</em> → desfaz</div>
+          <div class="chip"><em>"ok"</em> / ENTER → confirma popup</div>
+          <div class="chip">ENTER (campo vazio) → força última leitura</div>
+          <div class="chip"><em>"zerar"</em> → limpa kit</div>
+          <div class="chip">ESPAÇO → mic on/off</div>
+        </div>
+      </div>
+      <div>
+        <div class="secao-titulo">Kits</div>
+        <div class="kits-wrap" id="kits-wrap"></div>
+      </div>
+      <div class="especiais-card" id="card-especiais" style="display:none">
+        <div class="especiais-header">
+          <div class="especiais-titulo">✦ Estoque Especiais</div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--roxo)" id="badge-esp-count">0</span>
+        </div>
+        <div class="especiais-figs" id="especiais-figs"></div>
+      </div>
+    </div>
+    <div class="side-panel">
+      <div class="side-sec">
+        <div class="side-header">
+          <span class="side-titulo">Log de Eventos</span>
+          <button class="btn" style="font-size:0.6rem;padding:3px 8px" onclick="limparLog()">limpar</button>
+        </div>
+        <div class="log-area" id="log-area"><div class="vazio">— sem eventos —</div></div>
+      </div>
+      <div class="side-sec">
+        <div class="side-header"><span class="side-titulo">Ações</span></div>
+        <div class="side-actions">
+          <button class="btn" onclick="cmdVoltar()">↩ Voltar</button>
+          <button class="btn" onclick="cmdZerar()">↺ Zerar Kit</button>
+          <button class="btn btn-primary" onclick="exportarExcel()">↓ Exportar Excel</button>
+          <button class="btn" onclick="exportarEstado()">↓ Estado p/ próximo lote</button>
+          <button class="btn btn-danger" onclick="encerrarLote()">⏹ Encerrar Lote</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" tabindex="-1" onkeydown="if(event.key==='Enter'||event.key==='Escape'){event.preventDefault();confirmarPopup();}">
+  <div class="popup" id="popup">
+    <div class="popup-icone" id="p-icone"></div>
+    <div class="popup-titulo" id="p-titulo"></div>
+    <div id="p-conteudo"></div>
+    <div class="popup-hint" id="p-hint"></div>
+    <div class="popup-btns" id="p-btns"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONSTANTES — FIGURINHAS COPA 2026
+// ══════════════════════════════════════════
+const PREFIXOS_VALIDOS = {
+  FWC:{min:0,max:19},
+  ALG:{min:1,max:20},ARG:{min:1,max:20},AUS:{min:1,max:20},AUT:{min:1,max:20},
+  BEL:{min:1,max:20},BIH:{min:1,max:20},BRA:{min:1,max:20},CAN:{min:1,max:20},
+  CC:{min:1,max:14},CIV:{min:1,max:20},COD:{min:1,max:20},COL:{min:1,max:20},
+  CPV:{min:1,max:20},CRO:{min:1,max:20},CUW:{min:1,max:20},CZE:{min:1,max:20},
+  ECU:{min:1,max:20},EGY:{min:1,max:20},ENG:{min:1,max:20},ESP:{min:1,max:20},
+  FRA:{min:1,max:20},GER:{min:1,max:20},GHA:{min:1,max:20},HAI:{min:1,max:20},
+  IRN:{min:1,max:20},IRQ:{min:1,max:20},JOR:{min:1,max:20},JPN:{min:1,max:20},
+  KOR:{min:1,max:20},KSA:{min:1,max:20},MAR:{min:1,max:20},MEX:{min:1,max:20},
+  NED:{min:1,max:20},NOR:{min:1,max:20},NZL:{min:1,max:20},PAN:{min:1,max:20},
+  PAR:{min:1,max:20},POR:{min:1,max:20},QAT:{min:1,max:20},RSA:{min:1,max:20},
+  SCO:{min:1,max:20},SEN:{min:1,max:20},SUI:{min:1,max:20},SWE:{min:1,max:20},
+  TUN:{min:1,max:20},TUR:{min:1,max:20},URU:{min:1,max:20},USA:{min:1,max:20},
+  UZB:{min:1,max:20}
+};
+
+// Aliases de voz (PT-BR normalizado) → código de prefixo
+// norm() remove acentos e converte para minúsculas antes de comparar
+// Cobre: nome completo PT | código 3 letras | inglês | adjetivo | apelido | variações comuns
+const PAIS_CODIGO = {
+  // ── FWC — Copa do Mundo ───────────────────────────────────────────────
+  'fwc':'FWC','copa':'FWC','fifa':'FWC','mundial':'FWC',
+  'copa do mundo':'FWC','world cup':'FWC','copa mundo':'FWC',
+
+  // ── ALG — Argélia ────────────────────────────────────────────────────
+  'argelia':'ALG','algeria':'ALG','alg':'ALG','argelino':'ALG',
+
+  // ── ARG — Argentina ──────────────────────────────────────────────────
+  'argentina':'ARG','arg':'ARG','argentino':'ARG','albiceleste':'ARG',
+
+  // ── AUS — Austrália ──────────────────────────────────────────────────
+  'australia':'AUS','aus':'AUS','aussie':'AUS','australiana':'AUS',
+  'aos':'AUS','a uns':'AUS','auss':'AUS',
+
+  // ── AUT — Áustria ────────────────────────────────────────────────────
+  'austria':'AUT','aut':'AUT','austriaco':'AUT','austriaca':'AUT',
+  'auto':'AUT', // Chrome ouve "aut" como "auto" (adiciona o 'o' no final)
+
+  // ── BEL — Bélgica ────────────────────────────────────────────────────
+  'belgica':'BEL','belgium':'BEL','bel':'BEL','belga':'BEL',
+  'belgio':'BEL','diables rouges':'BEL',
+
+  // ── BIH — Bósnia e Herzegovina ───────────────────────────────────────
+  'bosnia e herzegovina':'BIH','bosnia':'BIH','bih':'BIH',
+  'bos':'BIH','herzegovina':'BIH','bośnia':'BIH',
+
+  // ── BRA — Brasil ─────────────────────────────────────────────────────
+  'brasil':'BRA','brazil':'BRA','bra':'BRA',
+  'brasileira':'BRA','brasileiro':'BRA','brasileiros':'BRA',
+  'canarinho':'BRA','verde amarelo':'BRA','selecao':'BRA',
+  'pra':'BRA','bras':'BRA', // Chrome ouve "bra" como "pra" às vezes
+
+  // ── CAN — Canadá ─────────────────────────────────────────────────────
+  'canada':'CAN','can':'CAN','canadense':'CAN','canadiano':'CAN',
+  'cam':'CAN', // Chrome confunde N/M — "can" → "cam"
+  'sean':'CAN', // C-A-N soletrado em inglês: "sê-ei-en" → Chrome ouve "sean"
+
+  // ── CC — Países Baixos (Coca-Cola) ───────────────────────────────────
+  'paises baixos':'CC','cc':'CC','baixos':'CC','pais baixo':'CC',
+  'paises':'CC', // palavra única do nome composto
+
+  // ── CIV — Costa do Marfim ────────────────────────────────────────────
+  'costa do marfim':'CIV','marfim':'CIV','civ':'CIV',
+  'ivory coast':'CIV','costa marfim':'CIV','costa do marfin':'CIV',
+  'marfinense':'CIV',
+  'costa':'CIV', // palavra única (única seleção com "costa")
+  'c e v':'CIV','cev':'CIV', // C-I-V soletrado: "cê-í-vê" → Chrome ouve "c e v"
+
+  // ── COD — Congo DR ───────────────────────────────────────────────────
+  'congo dr':'COD','congo':'COD','cod':'COD',
+  'dr congo':'COD','congo democratico':'COD','republica congo':'COD',
+
+  // ── COL — Colômbia ───────────────────────────────────────────────────
+  'colombia':'COL','col':'COL','colombiana':'COL','colombiano':'COL',
+  'cool':'COL', // Chrome ouve "col" como "cool"
+
+  // ── CPV — Cabo Verde ─────────────────────────────────────────────────
+  'cabo verde':'CPV','cabo':'CPV','cpv':'CPV',
+  'cape verde':'CPV','verde':'CPV','ilhas de cabo verde':'CPV',
+  'c p v':'CPV', // NÃO incluir 'cv' — ambíguo com CIV (Costa do Marfim)
+  'campanha':'CPV', // Chrome ouve "cabo" como "campanha"
+
+  // ── CRO — Croácia ────────────────────────────────────────────────────
+  'croacia':'CRO','croatia':'CRO','cro':'CRO',
+  'croata':'CRO','hrvatska':'CRO',
+
+  // ── CUW — Curaçao ────────────────────────────────────────────────────
+  'curacao':'CUW','cuw':'CUW','curaca':'CUW','curaso':'CUW',
+  'se o w':'CUW','seow':'CUW', // C-U-W soletrado: "cê-u-dáblio" → Chrome ouve "se o w"
+
+  // ── CZE — República Tcheca ───────────────────────────────────────────
+  'republica tcheca':'CZE','tcheca':'CZE','tcheco':'CZE',
+  'cze':'CZE','tche':'CZE','czech':'CZE','czechia':'CZE',
+  'chequia':'CZE','checa':'CZE','republica checa':'CZE',
+  'tchequinha':'CZE','cce':'CZE','república checa':'CZE',
+  'republica':'CZE', // palavra única (única com "república")
+
+  // ── ECU — Equador ────────────────────────────────────────────────────
+  'equador':'ECU','ecuador':'ECU','ecu':'ECU',
+  'equatoriano':'ECU','la tri':'ECU',
+
+  // ── EGY — Egito ──────────────────────────────────────────────────────
+  'egito':'EGY','egypt':'EGY','egy':'EGY',
+  'egipto':'EGY','egípcio':'EGY','egipcio':'EGY',
+  'gy':'EGY','egey':'EGY','e g e y':'EGY', // E-G-Y soletrado: "e-gê-í" → "g y" ou "e g e y"
+
+  // ── ENG — Inglaterra ─────────────────────────────────────────────────
+  'inglaterra':'ENG','england':'ENG','eng':'ENG',
+  'ingles':'ENG','inglesa':'ENG','ingleses':'ENG',
+  'britanica':'ENG','britanicos':'ENG','three lions':'ENG',
+  'enge':'ENG','engle':'ENG', // Chrome ouve "ing" como "enge"
+
+  // ── ESP — Espanha ────────────────────────────────────────────────────
+  'espanha':'ESP','spain':'ESP','esp':'ESP',
+  'espanhola':'ESP','espanhol':'ESP','espanhois':'ESP',
+  'roja':'ESP','la roja':'ESP',
+
+  // ── FRA — França ─────────────────────────────────────────────────────
+  'franca':'FRA','france':'FRA','fra':'FRA',
+  'francesa':'FRA','frances':'FRA','franceses':'FRA',
+  'les bleus':'FRA','galo':'FRA','galos':'FRA',
+  'fa':'FRA', // Chrome dropa o 'r' de "fra" → "fa"
+
+  // ── GER — Alemanha ───────────────────────────────────────────────────
+  'alemanha':'GER','germany':'GER','ger':'GER',
+  'alema':'GER','deutschland':'GER','germânia':'GER','germania':'GER',
+  'erm':'GER','e rm':'GER', // G-E-R soletrado → Chrome ouve "e rm"
+  'ver':'GER', // confusão G/V — Chrome ouve "ger" como "ver"
+
+  // ── GHA — Gana ───────────────────────────────────────────────────────
+  'gana':'GHA','ghana':'GHA','gha':'GHA',
+  'ganense':'GHA','black stars':'GHA',
+  'ga':'GHA','ch':'GHA', // soletrado: "g a" (dropped H), "ch" (G→C+H)
+
+  // ── HAI — Haiti ──────────────────────────────────────────────────────
+  'haiti':'HAI','hai':'HAI','haitiano':'HAI','haitiana':'HAI',
+  'hi':'HAI','h i':'HAI', // H-A-I soletrado: "agá-á-í" → Chrome ouve "h i"
+  'art':'HAI', // Chrome ouve "hai" como "art" (observado 2× no log real)
+
+  // ── IRN — Irã ────────────────────────────────────────────────────────
+  'ira':'IRN','iran':'IRN','irn':'IRN',
+  'iraniano':'IRN','persia':'IRN','persas':'IRN',
+
+  // ── IRQ — Iraque ─────────────────────────────────────────────────────
+  'iraque':'IRQ','iraq':'IRQ','irq':'IRQ','iraquiano':'IRQ',
+
+  // ── JOR — Jordânia ───────────────────────────────────────────────────
+  'jordania':'JOR','jordan':'JOR','jor':'JOR',
+  'jordao':'JOR','jordanio':'JOR',
+  'john':'JOR','joran':'JOR','jordao':'JOR', // Chrome ouve "jordânia" como "john"
+
+  // ── JPN — Japão ──────────────────────────────────────────────────────
+  'japao':'JPN','japan':'JPN','jpn':'JPN',
+  'japones':'JPN','japonesa':'JPN','samurai':'JPN',
+
+  // ── KOR — Coreia do Sul ──────────────────────────────────────────────
+  'coreia do sul':'KOR','coreia sul':'KOR','coreia':'KOR',
+  'korea':'KOR','kor':'KOR','south korea':'KOR',
+  'coreana':'KOR','coreano':'KOR',
+  'core':'KOR','corei':'KOR','core i':'KOR', // Chrome ouve "coreia" como "core i"
+  'que o r':'KOR','queor':'KOR', // fonético KOR em PT: "cá-ó-érre"
+  'kr':'KOR', // 2 letras (TLD .kr, sem ambiguidade)
+
+  // ── KSA — Arábia Saudita ─────────────────────────────────────────────
+  'arabia saudita':'KSA','arabia':'KSA','saudita':'KSA',
+  'ksa':'KSA','saudi':'KSA','saudi arabia':'KSA',
+  'arabes':'KSA','arabias':'KSA',
+
+  // ── MAR — Marrocos ───────────────────────────────────────────────────
+  'marrocos':'MAR','morocco':'MAR','mar':'MAR',
+  'marroquino':'MAR','atlas':'MAR',
+  'nar':'MAR', // confusão M/N — "mar" → "nar"
+  'mr':'MAR', // M-A-R soletrado: Chrome dropa o A → "mr"
+
+  // ── MEX — México ─────────────────────────────────────────────────────
+  'mexico':'MEX','mex':'MEX','mexicano':'MEX',
+  'mexicanos':'MEX','el tri':'MEX',
+  'nex':'MEX', // confusão M/N — "mex" → "nex"
+
+  // ── NED — Holanda ────────────────────────────────────────────────────
+  'holanda':'NED','netherlands':'NED','ned':'NED',
+  'holandesa':'NED','holandeses':'NED','nederland':'NED',
+  'laranja':'NED','laranjada':'NED',
+  'med':'NED', // confusão M/N — "ned" → "med"
+  'need':'NED','rolando':'NED', // Chrome ouve "ned/holanda" como "need" ou "rolando" (fonético "ho-lan-da"≈"ro-lan-do")
+
+  // ── NOR — Noruega ────────────────────────────────────────────────────
+  'noruega':'NOR','norway':'NOR','nor':'NOR',
+  'norueguesa':'NOR','noruegues':'NOR',
+  'mor':'NOR', // confusão M/N — "nor" → "mor"
+
+  // ── NZL — Nova Zelândia ──────────────────────────────────────────────
+  'nova zelandia':'NZL','nova zelanda':'NZL','zelandia':'NZL',
+  'zelanda':'NZL','nzl':'NZL','new zealand':'NZL',
+  'kiwi':'NZL','kiwis':'NZL','all whites':'NZL',
+  'nova':'NZL', // palavra única (única com "nova")
+  'ml':'NZL','ncl':'NZL','ceilandia':'NZL', // N-Z-L soletrado: Chrome erra muito — "ml","ncl","ceilândia"
+
+  // ── PAN — Panamá ─────────────────────────────────────────────────────
+  'panama':'PAN','pan':'PAN','panamense':'PAN','panameno':'PAN',
+  'ban':'PAN', // confusão P/B — "pan" → "ban"
+  'pm':'PAN', // P-A-N soletrado: Chrome dropa o A → "pm"
+
+  // ── PAR — Paraguai ───────────────────────────────────────────────────
+  'paraguai':'PAR','paraguay':'PAR','par':'PAR',
+  'paraguaio':'PAR','paraguaia':'PAR','guarani':'PAR',
+  'bar':'PAR','baraguai':'PAR', // confusão P/B — "par/paraguai" → "bar/baraguai"
+
+  // ── POR — Portugal ───────────────────────────────────────────────────
+  'portugal':'POR','por':'POR','portuguesa':'POR',
+  'portugues':'POR','luso':'POR','lusas':'POR',
+  'lusitania':'POR','navegadores':'POR',
+  'pior':'POR','bor':'POR','bortugal':'POR', // confusão P/B — Chrome ouve "por/portugal" assim
+  'pr':'POR', // Chrome dropa o 'o' de "por" → "pr"
+  'e o r':'POR','eor':'POR', // P-O-R soletrado: "pê-ó-érre" → "e o r"
+
+  // ── QAT — Catar ──────────────────────────────────────────────────────
+  // Fonética Q-A-T em PT-BR: quê-á-tê → Chrome retorna "que a t" / "que a te"
+  'catar':'QAT','qatar':'QAT','qat':'QAT',
+  'quatar':'QAT','catari':'QAT',
+  'que a t':'QAT','que a te':'QAT','que at':'QAT','que a':'QAT',
+  'kata':'QAT','cata':'QAT','quata':'QAT',
+  'qt':'QAT','q t':'QAT', // Q-A-T soletrado: Chrome dropa o A → "qt" (causa do QAT10 perdido!)
+  'catarro':'QAT', // Chrome ouve "catar" como "catarro"
+
+  // ── RSA — África do Sul ──────────────────────────────────────────────
+  'africa do sul':'RSA','africa sul':'RSA','africa':'RSA',
+  'rsa':'RSA','south africa':'RSA','sul africana':'RSA',
+  'bafana':'RSA',
+  'sul':'RSA', // palavra única (única seleção com "sul" no nome)
+
+  // ── SCO — Escócia ────────────────────────────────────────────────────
+  'escocia':'SCO','scotland':'SCO','sco':'SCO',
+  'escocesa':'SCO','escoces':'SCO','escoceses':'SCO',
+  'escola':'SCO', // Chrome ouve "escócia" como "escola"
+
+  // ── SEN — Senegal ────────────────────────────────────────────────────
+  'senegal':'SEN','sen':'SEN','senegalesa':'SEN',
+  'senegalês':'SEN','teranga':'SEN',
+
+  // ── SUI — Suíça ──────────────────────────────────────────────────────
+  'suica':'SUI','switzerland':'SUI','sui':'SUI',
+  'suissa':'SUI','swiss':'SUI','helvetia':'SUI',
+  'sue':'SUI', // Chrome ouve "sui" como "sue" às vezes
+
+  // ── SWE — Suécia ─────────────────────────────────────────────────────
+  'suecia':'SWE','sweden':'SWE','swe':'SWE',
+  'sueca':'SWE','sueco':'SWE','suecos':'SWE',
+
+  // ── TUN — Tunísia ────────────────────────────────────────────────────
+  'tunisia':'TUN','tun':'TUN','tunis':'TUN',
+  'tunisiana':'TUN','tunisiano':'TUN','aguias de cartago':'TUN',
+  'tum':'TUN','dun':'TUN', // confusão M/N e D/T — "tun" → "tum"/"dun"
+
+  // ── TUR — Turquia ────────────────────────────────────────────────────
+  'turquia':'TUR','turkey':'TUR','tur':'TUR',
+  'turca':'TUR','turco':'TUR','turcos':'TUR','turkiye':'TUR',
+
+  // ── URU — Uruguai ────────────────────────────────────────────────────
+  'uruguai':'URU','uruguay':'URU','uru':'URU',
+  'uruguaio':'URU','uruguaia':'URU','charruas':'URU','celeste':'URU',
+  'rua':'URU', // Chrome ouve "uru" como "rua" (u-érre-u → rua)
+
+  // ── USA — Estados Unidos ─────────────────────────────────────────────
+  'estados unidos':'USA','eua':'USA','usa':'USA',
+  'united states':'USA','americanos':'USA','estados':'USA',
+
+  // ── UZB — Uzbequistão ────────────────────────────────────────────────
+  'uzbequistao':'UZB','uzbekistao':'UZB','uzb':'UZB',
+  'uzbequi':'UZB','uzbek':'UZB',
+  'z':'UZB', // Chrome ouve "uzb" só como "z" (dropa U e B)
+
+  // ── Aliases de 2 letras (unívocos — sem ambiguidade entre times) ─────
+  // NÃO inclui: au(AUS/AUT), co(COD/COL), ir(IRN/IRQ), pa(PAN/PAR), tu(TUN/TUR)
+  'al':'ALG','ar':'ARG','be':'BEL','bi':'BIH','br':'BRA',
+  'ca':'CAN','ci':'CIV','cp':'CPV','cr':'CRO','cu':'CUW',
+  'cz':'CZE','ec':'ECU','eg':'EGY','en':'ENG','es':'ESP',
+  'fr':'FRA','ge':'GER','gh':'GHA','ha':'HAI','jo':'JOR',
+  'jp':'JPN','ko':'KOR','ks':'KSA','ma':'MAR','me':'MEX',
+  'ne':'NED','no':'NOR','nz':'NZL','po':'POR','qa':'QAT',
+  'rs':'RSA','sc':'SCO','se':'SEN','su':'SUI','sw':'SWE',
+  'ur':'URU','us':'USA','uz':'UZB',
+};
+
+// Mapa prefixo → nome do país (para exibir no log)
+const PREFIXO_NOME = {
+  'FWC':'Copa do Mundo','ALG':'Argélia','ARG':'Argentina','AUS':'Austrália',
+  'AUT':'Áustria','BEL':'Bélgica','BIH':'Bósnia','BRA':'Brasil',
+  'CAN':'Canadá','CC':'Países Baixos','CIV':'Costa do Marfim',
+  'COD':'Congo DR','COL':'Colômbia','CPV':'Cabo Verde','CRO':'Croácia',
+  'CUW':'Curaçao','CZE':'Rep. Tcheca','ECU':'Equador','EGY':'Egito',
+  'ENG':'Inglaterra','ESP':'Espanha','FRA':'França','GER':'Alemanha',
+  'GHA':'Gana','HAI':'Haiti','IRN':'Irã','IRQ':'Iraque',
+  'JOR':'Jordânia','JPN':'Japão','KOR':'Coreia do Sul','KSA':'Arábia Saudita',
+  'MAR':'Marrocos','MEX':'México','NED':'Holanda','NOR':'Noruega',
+  'NZL':'Nova Zelândia','PAN':'Panamá','PAR':'Paraguai','POR':'Portugal',
+  'QAT':'Catar','RSA':'África do Sul','SCO':'Escócia','SEN':'Senegal',
+  'SUI':'Suíça','SWE':'Suécia','TUN':'Tunísia','TUR':'Turquia',
+  'URU':'Uruguai','USA':'Estados Unidos','UZB':'Uzbequistão',
+};
+function nomePais(id) {
+  const m = id.match(/^([A-Z]+)/);
+  return m ? (PREFIXO_NOME[m[1]] || m[1]) : id;
+}
+
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+}
+
+function validarFigurinaID(id) {
+  const m = id.match(/^([A-Z]+)(\d+)$/);
+  if (!m) return false;
+  const regra = PREFIXOS_VALIDOS[m[1]];
+  if (!regra) return false;
+  const n = parseInt(m[2]);
+  return n >= regra.min && n <= regra.max;
+}
+
+// ══════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════
+let cfg = {};
+let kits = [], kitsSets = [], kitsProntos = [], especiais = [];
+let listaEspeciais = new Set(); // Set de strings (ex: "BRA10")
+let extras = 0;
+let processadas = 0;
+let limiteTotal = 0; // começa em totalPacotes*7, cresce +1 a cada extra
+let historico = []; // { tipo:'normal'|'especial'|'extra', id, kitArr, kitSet }
+let logItems = [];
+let popupFila = [], popupAtual = null, filaVoz = [];
+let micAtivo = false, micRodando = false, reconhecimento = null;
+let lastFalaFinal = ''; // última transcrição final (para força via Enter)
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+function recalcularKits() {
+  const p = parseInt(document.getElementById('cfg-pacotes').value) || 0;
+  const k = parseInt(document.getElementById('cfg-kit').value) || 1;
+  document.getElementById('kits-esperados-calc').textContent = Math.floor((p * 7) / k);
+}
+
+function toggleGuia() {
+  const corpo = document.getElementById('guia-corpo');
+  document.getElementById('guia-seta').textContent = corpo.classList.toggle('aberto') ? '▲' : '▼';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  recalcularKits();
+  const salvas = localStorage.getItem('figurinhaop_especiais');
+  if (salvas) {
+    document.getElementById('cfg-especiais').value = salvas;
+    document.getElementById('esp-salvo-badge').style.display = '';
+  }
+  document.getElementById('cfg-especiais').addEventListener('input', () => {
+    localStorage.setItem('figurinhaop_especiais', document.getElementById('cfg-especiais').value);
+    document.getElementById('esp-salvo-badge').style.display = '';
+  });
+});
+
+function limparEspeciais() {
+  document.getElementById('cfg-especiais').value = '';
+  localStorage.removeItem('figurinhaop_especiais');
+  document.getElementById('esp-salvo-badge').style.display = 'none';
+}
+
+function lerArquivoEstado(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('cfg-estoque').value = e.target.result;
+    toast('Arquivo importado!');
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+
+function parsearEstoqueInicial(txt) {
+  if (!txt.trim()) return;
+  txt.split('|').forEach(parte => {
+    const m = parte.trim().match(/KIT\d+:(.+)/i);
+    if (!m) return;
+    const ids = m[1].split(',').map(s => s.trim().toUpperCase()).filter(s => validarFigurinaID(s));
+    if (!ids.length) return;
+    kits.push([]); kitsSets.push(new Set());
+    const idx = kits.length - 1;
+    ids.forEach(id => { kits[idx].push(id); kitsSets[idx].add(id); });
+  });
+}
+
+function processarKitsHerdados() {
+  if (kits.length <= 1) return null;
+  const figPool = [];
+  for (let i = 1; i < kits.length; i++) figPool.push(...kits[i]);
+  if (!figPool.length) return null;
+
+  kits = [[]]; kitsSets = [new Set()];
+  const completados = [];
+
+  figPool.forEach(id => {
+    const destIdx = encontrarKitDestino(id);
+    kits[destIdx].push(id); kitsSets[destIdx].add(id);
+    if (kits[0].length >= cfg.tamanhoKit) {
+      const kitNum = kitsProntos.length + 1;
+      const kitLabel = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
+      const kitFigs = [...kits[0]];
+      kitsProntos.push({ label: kitLabel, figs: kitFigs });
+      log('kit-done', '🏆', `Kit ${kitLabel} completo! (herdado)`);
+      completados.push({ label: kitLabel, figs: kitFigs });
+      kits.shift(); kitsSets.shift();
+      if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+    }
+  });
+  return { completados, noKit0: kits[0].length };
+}
+
+function mostrarPopupHeranca(completados, noKit0) {
+  const kitsHtml = completados.map(k =>
+    `<div style="margin:4px 0;text-align:left;padding:4px 8px;background:rgba(63,185,80,0.06);border-radius:4px">
+       <b style="font-family:'Archivo Black',sans-serif;color:var(--verde);font-size:0.8rem">${k.label}</b><br>
+       <span style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--texto2)">${k.figs.join(', ')}</span>
+     </div>`).join('');
+  const extra = noKit0 > 0
+    ? `<div style="margin-top:10px;font-size:0.75rem;color:var(--texto2);font-family:'JetBrains Mono',monospace">Kit 1 em formação: <b style="color:var(--amarelo-l)">${noKit0}</b> fig(s) — falta <b style="color:var(--amarelo-l)">${cfg.tamanhoKit - noKit0}</b></div>` : '';
+  _exibirPopup({
+    tipo: 'kit', icone: '🏆',
+    titulo: `${completados.length} kit(s) prontos pela herança!`,
+    conteudo: `<div style="max-height:200px;overflow-y:auto">${kitsHtml}</div>
+               <div class="popup-destino done" style="font-size:1rem;margin-top:8px">Separe estes kits como prontos</div>${extra}`,
+    hint: 'ENTER ou "ok" para confirmar',
+    btns: [{ label: '✓ Separei os kits', cls: 'pb-verde' }],
+    tts: `${completados.length} kit${completados.length > 1 ? 's prontos' : ' pronto'} com herança. Separe-os.`
+  });
+}
+
+function iniciarLote() {
+  cfg.operador      = document.getElementById('cfg-operador').value.trim() || 'Operador';
+  cfg.lote          = parseInt(document.getElementById('cfg-lote').value) || 1;
+  cfg.tamanhoKit    = parseInt(document.getElementById('cfg-kit').value) || 50;
+  cfg.totalPacotes  = parseInt(document.getElementById('cfg-pacotes').value) || 100;
+  cfg.kitsEsperados = Math.floor((cfg.totalPacotes * 7) / cfg.tamanhoKit);
+  limiteTotal = cfg.totalPacotes * 7; // reset ao iniciar lote
+
+  // Especiais: aceita IDs de figurinha (BRA10, POR15...)
+  listaEspeciais = new Set();
+  document.getElementById('cfg-especiais').value.split(',').forEach(s => {
+    const id = s.trim().toUpperCase();
+    if (validarFigurinaID(id)) listaEspeciais.add(id);
+  });
+
+  kits = [[]]; kitsSets = [new Set()];
+  parsearEstoqueInicial(document.getElementById('cfg-estoque').value);
+
+  document.getElementById('tela-setup').style.display = 'none';
+  document.getElementById('tela-app').style.display   = 'block';
+  document.getElementById('top-lote').textContent      = `L${cfg.lote}`;
+  document.getElementById('top-operador').textContent  = cfg.operador;
+  document.getElementById('s-esp-num').textContent     = cfg.kitsEsperados;
+  setInterval(() => { document.getElementById('top-hora').textContent = new Date().toLocaleTimeString('pt-BR'); }, 1000);
+
+  iniciarReconhecimento();
+
+  const heranca = processarKitsHerdados();
+  if (heranca) {
+    if (heranca.completados.length > 0) mostrarPopupHeranca(heranca.completados, heranca.noKit0);
+    else {
+      const faltam = cfg.tamanhoKit - heranca.noKit0;
+      log('cmd', '📦', `${heranca.noKit0} fig(s) herdada(s) → Kit 1 em formação (faltam ${faltam})`);
+      toast(`${heranca.noKit0} figurinha(s) herdada(s). Faltam ${faltam} para completar o Kit 1.`);
+    }
+  }
+
+  atualizarUI();
+  log('cmd', '🟢', `Lote L${cfg.lote} iniciado — Kit: ${cfg.tamanhoKit} — Operador: ${cfg.operador}`);
+  if (!heranca) toast('Lote iniciado! Pressione ESPAÇO para ativar o microfone.');
+  document.getElementById('teclado-input').focus();
+}
+
+// ══════════════════════════════════════════
+// VOZ — Web Speech API (Chrome)
+// ══════════════════════════════════════════
+function atualizarBadgeMotor() {
+  const badge = document.getElementById('motor-badge');
+  if (!badge) return;
+  badge.textContent = '🎙️ WEB'; badge.style.color = 'var(--texto2)';
+  badge.title = 'Usando Web Speech API (Chrome)';
+}
+
+function receberTranscricao(texto) {
+  const el = document.getElementById('transcricao');
+  el.textContent = texto;
+  el.className = 'transcricao' + (micAtivo ? ' ativa' : '');
+  const fala = texto.toLowerCase();
+  lastFalaFinal = fala;
+  if (popupAtual) {
+    if (/\b(ok|okay)\b/.test(fala)) confirmarPopup();
+    else {
+      const { validos, invalidos } = extrairFigurinhas(fala);
+      if (validos.length) {
+        filaVoz.push(...validos);
+      } else {
+        // Loga falhas mesmo durante popup — essencial para análise e melhoria de aliases
+        if (/\d/.test(fala) || fala.trim().split(/\s+/).length >= 2) {
+          playSound('err');
+          log('cmd', '❓', `Não identificou: "${fala.slice(0,40)}"`);
+        }
+      }
+    }
+  } else {
+    processarFala(fala);
+  }
+}
+
+function iniciarReconhecimento() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Use Chrome para reconhecimento de voz.'); return; }
+  atualizarBadgeMotor();
+  reconhecimento = new SR();
+  reconhecimento.lang = 'pt-BR';
+  reconhecimento.continuous = true;
+  reconhecimento.interimResults = true;
+  reconhecimento.maxAlternatives = 1;
+  reconhecimento.onstart = () => { micRodando = true; };
+
+  reconhecimento.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t + ' ';
+      else interim += t;
+    }
+    const el = document.getElementById('transcricao');
+    el.textContent = (interim || final).trim();
+    el.className = 'transcricao' + (micAtivo ? ' ativa' : '');
+    if (!final.trim()) return;
+    receberTranscricao(final.trim());
+  };
+
+  reconhecimento.onerror = (e) => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    log('cmd', '⚠️', `Erro voz: ${e.error}`);
+    micRodando = false;
+  };
+
+  reconhecimento.onend = () => {
+    micRodando = false;
+    if (micAtivo) setTimeout(() => { if (micAtivo && !micRodando) try { reconhecimento.start(); } catch(e){} }, 200);
+  };
+}
+
+function toggleMic() {
+  if (!reconhecimento) return;
+  micAtivo = !micAtivo;
+  const btn = document.getElementById('mic-btn');
+  if (micAtivo) {
+    btn.className = 'mic-btn ouvindo'; btn.textContent = '🔴';
+    if (!micRodando) try { reconhecimento.start(); } catch(e) {}
+    log('cmd', '🎙️', 'Microfone ativado');
+  } else {
+    btn.className = 'mic-btn pausado'; btn.textContent = '▶️';
+    try { reconhecimento.stop(); } catch(e) {}
+    micRodando = false;
+    const el = document.getElementById('transcricao');
+    el.textContent = '— Microfone pausado —'; el.className = 'transcricao';
+    log('cmd', '⏸️', 'Microfone pausado');
+  }
+}
+
+// ══════════════════════════════════════════
+// PARSING NUMÉRICO PT-BR
+// ══════════════════════════════════════════
+const CENTENAS = {
+  'cem':100,'cento':100,'duzentos':200,'duzentas':200,'trezentos':300,'trezentas':300,
+  'quatrocentos':400,'quatrocentas':400,'quinhentos':500,'quinhentas':500,
+  'seiscentos':600,'seiscentas':600,'setecentos':700,'setecentas':700,
+  'oitocentos':800,'oitocentas':800,'novecentos':900,'novecentas':900
+};
+const DEZENAS = {'vinte':20,'trinta':30,'quarenta':40,'cinquenta':50,'sessenta':60,'setenta':70,'oitenta':80,'noventa':90};
+const UNIDADES = {
+  'zero':0,'um':1,'uma':1,'dois':2,'duas':2,
+  'tres':3,'três':3,
+  'quatro':4,'cinco':5,'seis':6,'sete':7,'oito':8,'nove':9,'dez':10,
+  'onze':11,'doze':12,'treze':13,'quatorze':14,'catorze':14,
+  'quinze':15,'dezesseis':16,'dezessete':17,'dezoito':18,'dezenove':19
+};
+
+function parsearNumPT(tokens, start) {
+  let i = start, acc = 0, consumido = 0;
+  const t = tokens[i];
+  if (!t) return null;
+  if (CENTENAS[t] !== undefined) {
+    acc += CENTENAS[t]; consumido++; i++;
+    if (tokens[i] === 'e') {
+      i++; consumido++;
+      if (tokens[i] && DEZENAS[tokens[i]] !== undefined) {
+        acc += DEZENAS[tokens[i]]; consumido++; i++;
+        if (tokens[i] === 'e') { i++; consumido++; }
+        if (tokens[i] && UNIDADES[tokens[i]] !== undefined) { acc += UNIDADES[tokens[i]]; consumido++; i++; }
+      } else if (tokens[i] && UNIDADES[tokens[i]] !== undefined) {
+        acc += UNIDADES[tokens[i]]; consumido++; i++;
+      } else { consumido--; i--; }
+    }
+  } else if (DEZENAS[t] !== undefined) {
+    acc += DEZENAS[t]; consumido++; i++;
+    if (tokens[i] === 'e') { i++; consumido++; }
+    if (tokens[i] && UNIDADES[tokens[i]] !== undefined) { acc += UNIDADES[tokens[i]]; consumido++; i++; }
+  } else if (UNIDADES[t] !== undefined) {
+    acc += UNIDADES[t]; consumido++; i++;
+  } else return null;
+  return consumido > 0 ? [acc, consumido] : null;
+}
+
+// ══════════════════════════════════════════
+// PARSING DE FIGURINHAS — [PAÍS] [NÚMERO]
+// ══════════════════════════════════════════
+
+// Extrai figurinhas de uma fala. Retorna { validos: string[], invalidos: string[] }
+function extrairFigurinhas(fala) {
+  // Tokens normalizados (sem acentos) para match de país
+  // Tokens raw (com acentos, lowercase) para parsearNumPT
+  const tokensNorm = norm(fala).replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(t => t);
+  const tokensRaw  = fala.toLowerCase().replace(/[^a-záéíóúâêîôûãõç0-9\s]/g,' ').split(/\s+/).filter(t => t);
+
+  const validos = [], invalidos = [];
+  let i = 0;
+
+  while (i < tokensNorm.length) {
+    // --- tenta match de país (3, 2, 1 palavra) ---
+    let prefixo = null, consumidoPais = 0;
+    for (let len = 3; len >= 1; len--) {
+      if (i + len > tokensNorm.length) continue;
+      const candidato = tokensNorm.slice(i, i + len).join(' ');
+      if (PAIS_CODIGO[candidato]) {
+        prefixo = PAIS_CODIGO[candidato];
+        consumidoPais = len;
+        break;
+      }
+    }
+
+    if (prefixo !== null) {
+      const j = i + consumidoPais;
+      let numero = null, consumidoNum = 0;
+
+      // Número pode ser dígito, palavra PT, ou embutido no token (ex: "br a2" → "a2" → 2)
+      if (j < tokensNorm.length && /^\d+$/.test(tokensNorm[j])) {
+        numero = parseInt(tokensNorm[j]);
+        consumidoNum = 1;
+      } else if (j < tokensNorm.length) {
+        const mEmb = tokensNorm[j].match(/^[a-z]*(\d+)$/);
+        if (mEmb) { numero = parseInt(mEmb[1]); consumidoNum = 1; }
+        else { const res = parsearNumPT(tokensRaw, j); if (res) { [numero, consumidoNum] = res; } }
+      }
+
+      if (numero !== null) {
+        const id = prefixo + numero;
+        if (validarFigurinaID(id)) validos.push(id);
+        else invalidos.push(id);
+        i += consumidoPais + consumidoNum;
+      } else {
+        // País sem número — skip o país e continua
+        i += consumidoPais;
+      }
+      continue;
+    }
+
+    // --- tenta token como código direto colado (ex: "bra17", "por15") ---
+    const t = tokensNorm[i];
+    const mCodigo = t.match(/^([a-z]{2,4})(\d{1,2})$/);
+    if (mCodigo) {
+      const id = (mCodigo[1] + mCodigo[2]).toUpperCase();
+      if (validarFigurinaID(id)) { validos.push(id); }
+      else invalidos.push(id);
+      i++; continue;
+    }
+
+    // --- montagem genérica: combina 1-4 tokens como fragmentos do prefixo ---
+    // Cobre: "sui 16" | "s u i 16" | "n e d5" | "a rg 4" | "br 5" | "j o3" | etc.
+    {
+      let found = null;
+      outer: for (let nPfx = 1; nPfx <= 4; nPfx++) {
+        if (i + nPfx > tokensNorm.length) break;
+        const pfxToks = tokensNorm.slice(i, i + nPfx);
+        // Todos exceto o último devem ser letras puras
+        if (nPfx > 1 && !pfxToks.slice(0,-1).every(tk => /^[a-z]+$/.test(tk))) continue;
+        const lastTok = pfxToks[pfxToks.length - 1];
+
+        // Caso A: último token são letras puras — número vem no próximo token
+        if (/^[a-z]+$/.test(lastTok)) {
+          const pfxKey = pfxToks.join('');
+          const pfxUpper = pfxKey.toUpperCase();
+          const pfxFinal = PREFIXOS_VALIDOS[pfxUpper] ? pfxUpper : (PAIS_CODIGO[pfxKey] || null);
+          if (pfxFinal) {
+            const j = i + nPfx;
+            let numero = null, consumidoNum = 0;
+            if (j < tokensNorm.length && /^\d+$/.test(tokensNorm[j])) {
+              numero = parseInt(tokensNorm[j]); consumidoNum = 1;
+            } else {
+              const res = parsearNumPT(tokensRaw, j);
+              if (res) { [numero, consumidoNum] = res; }
+            }
+            if (numero !== null) {
+              found = { id: pfxFinal + numero, consumed: nPfx + consumidoNum };
+              break outer;
+            }
+          }
+        }
+
+        // Caso B: último token tem letras+dígitos colados (ex: "rg4", "d5", "o3", "x14")
+        const mEmbed = lastTok.match(/^([a-z]+)(\d+)$/);
+        if (mEmbed) {
+          const pfxKey = pfxToks.slice(0,-1).join('') + mEmbed[1];
+          const pfxUpper = pfxKey.toUpperCase();
+          const pfxFinal = PREFIXOS_VALIDOS[pfxUpper] ? pfxUpper : (PAIS_CODIGO[pfxKey] || null);
+          if (pfxFinal) {
+            found = { id: pfxFinal + parseInt(mEmbed[2]), consumed: nPfx };
+            break outer;
+          }
+        }
+      }
+      if (found !== null) {
+        if (validarFigurinaID(found.id)) validos.push(found.id);
+        else invalidos.push(found.id);
+        i += found.consumed;
+        continue;
+      }
+    }
+
+    i++;
+  }
+  return { validos, invalidos };
+}
+
+function processarFala(fala) {
+  // Comandos
+  if (/\bvoltar\b/.test(fala))  { cmdVoltar(); return; }
+  if (/\bzerar\b/.test(fala))   { cmdZerar();  return; }
+  if (/\bpronto\b/.test(fala))  { cmdPronto(); return; }
+
+  // Extra / especial sem código
+  if (/\b(extra|extras|especial|especiais)\b/.test(fala)) { cmdExtra(); return; }
+
+  const { validos, invalidos } = extrairFigurinhas(fala);
+
+  if (validos.length === 0 && invalidos.length > 0) {
+    playSound('err');
+    falar('Inválido.', 3.0);
+    toast(`Código inválido: ${invalidos.join(', ')}`, true);
+    return;
+  }
+  if (validos.length === 0 && invalidos.length === 0) {
+    // Loga se tiver dígito (tentativa de figurinha) OU 2+ palavras
+    if (/\d/.test(fala) || fala.trim().split(/\s+/).length >= 2) {
+      playSound('err');
+      log('cmd', '❓', `Não identificou: "${fala.slice(0,40)}"`);
+    }
+    return;
+  }
+  validos.forEach(adicionarFigurina);
+}
+
+// ══════════════════════════════════════════
+// LÓGICA PRINCIPAL
+// ══════════════════════════════════════════
+function encontrarKitDestino(id) {
+  for (let i = 0; i < kitsSets.length; i++) {
+    if (!kitsSets[i].has(id)) return i;
+  }
+  kits.push([]); kitsSets.push(new Set());
+  return kitsSets.length - 1;
+}
+
+function adicionarFigurina(id) {
+  // limiteTotal é variável de estado global (cresce +1 a cada extra)
+  if (processadas >= limiteTotal) {
+    falar('Lote esgotado.', 3.0);
+    toast(`Lote esgotado — todas as ${limiteTotal} figurinhas já foram processadas!`, true);
+    return;
+  }
+  processadas++;
+
+  if (listaEspeciais.has(id)) {
+    especiais.push(id);
+    historico.push({ tipo: 'especial', id, kitArr: null, kitSet: null });
+    if (historico.length > 200) historico.shift();
+    log('esp', '✦', `${id} → ESPECIAL`);
+    mostrarPopup({
+      tipo: 'esp', icone: '✦', titulo: 'Figurinha Especial',
+      conteudo: `<div class="popup-fig-num" style="color:var(--roxo)">${id}</div>
+                 <div class="popup-destino esp">Estoque Especial</div>`,
+      hint: 'ENTER ou "ok" para confirmar',
+      btns: [{ label: '✓ Ok, movida', cls: 'pb-roxo' }], tts: 'Especial.'
+    });
+    atualizarUI(); return;
+  }
+
+  const destIdx = encontrarKitDestino(id);
+  kits[destIdx].push(id);
+  kitsSets[destIdx].add(id);
+  historico.push({ tipo: 'normal', id, kitArr: kits[destIdx], kitSet: kitsSets[destIdx] });
+  if (historico.length > 200) historico.shift();
+
+  if (destIdx === 0) {
+    playSound('ok');
+    log('ok', '✅', `${id} — ${nomePais(id)} → Kit atual (${kits[0].length}/${cfg.tamanhoKit})`);
+    atualizarUI();
+    if (kits[0].length >= cfg.tamanhoKit) {
+      const kitNum = kitsProntos.length + 1;
+      const kitLabel = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
+      kitsProntos.push({ label: kitLabel, figs: [...kits[0]] });
+      log('kit-done', '🏆', `Kit ${kitLabel} completo!`);
+      kits.shift(); kitsSets.shift();
+      if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      atualizarUI();
+      mostrarPopup({
+        tipo: 'kit', icone: '🏆', titulo: `${kitLabel} Completo!`,
+        conteudo: `<div class="popup-destino done">Retire as ${cfg.tamanhoKit} figurinhas<br>e coloque nos kits prontos.<br>Próximo kit em formação.</div>`,
+        hint: 'ENTER ou "ok" para confirmar',
+        btns: [{ label: '✓ Kit retirado', cls: 'pb-verde' }], tts: `Kit ${kitNum} pronto!`
+      });
+    }
+  } else {
+    const kitFuturoNum = kitsProntos.length + 1 + destIdx;
+    log('rep', '📦', `${id} repetida → Kit ${kitFuturoNum}`);
+    atualizarUI();
+    mostrarPopup({
+      tipo: 'rep', icone: '📦', titulo: 'Repetida',
+      conteudo: `<div class="popup-fig-num">${id}</div>
+                 <div class="popup-destino kit">Kit ${kitFuturoNum}</div>`,
+      hint: 'ENTER ou "ok" para confirmar',
+      btns: [{ label: '✓ Ok, coloquei', cls: 'pb-amarelo' }],
+      tts: `Repetida, coloque no kit ${kitFuturoNum}.`
+    });
+  }
+  atualizarUI();
+}
+
+function cmdExtra() {
+  // Extra = 8ª figurinha do pacote → aumenta o total esperado em 1
+  limiteTotal++;
+  processadas++;
+  extras++;
+  historico.push({ tipo: 'extra', id: 'EXTRA', kitArr: null, kitSet: null });
+  if (historico.length > 200) historico.shift();
+  log('ext', '📌', `Extra #${extras} — separar no bolinho`);
+  atualizarUI();
+  mostrarPopup({
+    tipo: 'ext', icone: '📌', titulo: `Extra #${extras}`,
+    conteudo: `<div class="popup-destino" style="background:rgba(139,92,246,0.15);border-color:var(--roxo);color:var(--roxo);font-size:1.1rem;padding:14px 20px">BOLINHO DE EXTRAS</div>`,
+    hint: 'ENTER ou "ok" para confirmar',
+    btns: [{ label: '✓ Separei', cls: 'pb-roxo' }],
+    tts: 'Extra! Separa no bolinho.'
+  });
+}
+
+// ══════════════════════════════════════════
+// TECLADO
+// ══════════════════════════════════════════
+function tecladoKeydown(e) {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  if (popupAtual) { confirmarPopup(); return; }
+  const val = document.getElementById('teclado-input').value.trim();
+  // Campo vazio + Enter → força processar última leitura de voz
+  if (!val && lastFalaFinal) {
+    const fala = lastFalaFinal; lastFalaFinal = '';
+    log('cmd', '⏎', `Força: "${fala.slice(0,30)}"`);
+    processarFala(fala);
+    document.getElementById('teclado-input').focus();
+    return;
+  }
+  tecladoProcessar();
+}
+
+function tecladoProcessar() {
+  if (popupAtual) { confirmarPopup(); return; }
+  const input = document.getElementById('teclado-input');
+  const val = input.value.trim().toUpperCase().replace(/\s+/g, '');
+  input.value = '';
+  if (!val) return;
+
+  if (val === 'EXTRA' || val === 'EXT') { cmdExtra(); input.focus(); return; }
+
+  if (!validarFigurinaID(val)) {
+    falar('Inválido.', 3.0);
+    toast(`Código inválido: ${val}`, true);
+    input.focus(); return;
+  }
+  adicionarFigurina(val);
+  input.focus();
+}
+
+// ══════════════════════════════════════════
+// POPUP
+// ══════════════════════════════════════════
+function mostrarPopup(dados) {
+  if (popupAtual) { popupFila.push(dados); return; }
+  _exibirPopup(dados);
+}
+
+function _exibirPopup(dados) {
+  popupAtual = dados;
+  const inp = document.getElementById('teclado-input');
+  inp.disabled = true;
+  document.getElementById('btn-processar').disabled = true;
+  document.getElementById('popup').className = `popup tipo-${dados.tipo}`;
+  document.getElementById('p-icone').textContent  = dados.icone;
+  document.getElementById('p-titulo').textContent = dados.titulo;
+  document.getElementById('p-conteudo').innerHTML = dados.conteudo;
+  document.getElementById('p-hint').textContent   = dados.hint;
+  document.getElementById('p-btns').innerHTML     = dados.btns
+    .map(b => `<button class="popup-btn ${b.cls}" onclick="confirmarPopup()">${b.label}</button>`).join('');
+  const overlay = document.getElementById('overlay');
+  overlay.classList.add('vis');
+  overlay.focus();
+  if (dados.tts) falar(dados.tts, 3.0);
+}
+
+function confirmarPopup() {
+  if (!popupAtual) return;
+  popupAtual = null;
+  document.getElementById('overlay').classList.remove('vis');
+  const inp = document.getElementById('teclado-input');
+  inp.disabled = false;
+  document.getElementById('btn-processar').disabled = false;
+  inp.focus();
+  if (popupFila.length > 0) {
+    setTimeout(() => { if (popupFila.length > 0) _exibirPopup(popupFila.shift()); }, 280);
+  } else if (filaVoz.length > 0) {
+    const pendentes = filaVoz.splice(0);
+    setTimeout(() => pendentes.forEach(adicionarFigurina), 300);
+  }
+}
+
+// ══════════════════════════════════════════
+// COMANDOS
+// ══════════════════════════════════════════
+function cmdVoltar() {
+  if (!historico.length) { toast('Nada para desfazer.'); return; }
+  const entrada = historico.pop();
+
+  if (entrada.tipo === 'extra') {
+    extras = Math.max(0, extras - 1);
+    processadas = Math.max(0, processadas - 1);
+    limiteTotal = Math.max(cfg.totalPacotes * 7, limiteTotal - 1);
+    log('cmd', '↩️', 'Extra removida');
+    atualizarUI();
+    toast('Extra removida');
+    return;
+  }
+
+  if (entrada.tipo === 'especial') {
+    const idx = especiais.lastIndexOf(entrada.id);
+    if (idx !== -1) especiais.splice(idx, 1);
+    processadas = Math.max(0, processadas - 1);
+    log('cmd', '↩️', `${entrada.id} especial removida`);
+    atualizarUI();
+    toast(`${entrada.id} removida`);
+    return;
+  }
+
+  const emFormacao = kits.some(k => k === entrada.kitArr);
+  if (!emFormacao) {
+    toast('Kit já finalizado — não é possível voltar além deste ponto.', true);
+    return;
+  }
+  const idx = entrada.kitArr.lastIndexOf(entrada.id);
+  if (idx !== -1) {
+    entrada.kitArr.splice(idx, 1);
+    entrada.kitSet.delete(entrada.id);
+    processadas = Math.max(0, processadas - 1);
+    log('cmd', '↩️', `${entrada.id} removida (voltar)`);
+    atualizarUI();
+    toast(`${entrada.id} removida`);
+  }
+}
+
+function cmdZerar() {
+  const kitAtual = kits[0];
+  kits[0] = []; kitsSets[0] = new Set();
+  historico = historico.filter(h => h.kitArr !== kitAtual);
+  log('cmd', '↺', 'Kit atual zerado');
+  atualizarUI();
+  toast('Kit atual zerado');
+}
+
+function cmdPronto() {
+  const faltam = cfg.tamanhoKit - kits[0].length;
+  if (faltam > 0) { toast(`⚠️ Faltam ${faltam} figurinhas`, true); falar(`Faltam ${faltam}.`, 3.0); }
+  else toast('Kit atual completo!');
+}
+
+// ══════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════
+const kitsExpandidos = new Set();
+function toggleKitExpandido(label) {
+  if (kitsExpandidos.has(label)) kitsExpandidos.delete(label); else kitsExpandidos.add(label);
+  atualizarUI();
+}
+
+function atualizarUI() {
+  // limiteTotal é variável de estado global (cresce +1 a cada extra)
+  const pctLote = processadas / limiteTotal;
+  const procEl = document.getElementById('s-proc');
+  procEl.textContent = `${processadas}/${limiteTotal}`;
+  procEl.className = `stat-val ${pctLote >= 1 ? 'alerta' : pctLote >= 0.9 ? 'amarelo' : 'azul'}`;
+
+  document.getElementById('s-pac').textContent       = Math.floor(processadas / 7);
+  document.getElementById('s-kit-atual').textContent = `${kits[0]?.length || 0}/${cfg.tamanhoKit}`;
+  document.getElementById('s-prontos').textContent   = kitsProntos.length;
+  document.getElementById('s-esp').textContent       = especiais.length;
+  document.getElementById('s-ext').textContent       = extras;
+
+  let totalFila = 0;
+  for (let i = 1; i < kits.length; i++) totalFila += kits[i].length;
+  document.getElementById('s-fila').textContent = totalFila;
+
+  const wrap = document.getElementById('kits-wrap');
+  wrap.innerHTML = '';
+
+  kits.forEach((kit, idx) => {
+    const kitNum = kitsProntos.length + 1 + idx;
+    const label  = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
+    const pct    = Math.min(100, (kit.length / cfg.tamanhoKit) * 100);
+    const isAtivo = idx === 0;
+    const lastIdx = kit.length - 1;
+    const card = document.createElement('div');
+    card.className = `kit-card ${isAtivo ? 'ativo' : 'futuro'}`;
+    card.innerHTML = `
+      <div class="kit-header">
+        <div class="kit-nome">${label}<span class="kit-tag ${isAtivo ? 'atual' : 'futuro'}">${isAtivo ? 'KIT ATUAL' : `KIT +${idx}`}</span></div>
+        <span class="kit-prog">${kit.length} / ${cfg.tamanhoKit}</span>
+      </div>
+      <div class="kit-barra"><div class="kit-barra-fill" style="width:${pct}%"></div></div>
+      <div class="kit-figs">
+        ${kit.length === 0
+          ? '<span style="font-family:JetBrains Mono,monospace;font-size:0.65rem;color:var(--borda)">— aguardando —</span>'
+          : kit.map((id, i) => `<span class="fig-chip${isAtivo && i === lastIdx ? ' novo' : ''}">${id}</span>`).join('')}
+      </div>`;
+    wrap.appendChild(card);
+  });
+
+  for (let i = kitsProntos.length - 1; i >= 0; i--) {
+    const kp = kitsProntos[i];
+    const expandido = kitsExpandidos.has(kp.label);
+    const card = document.createElement('div');
+    card.className = 'kit-card completo';
+    card.innerHTML = `
+      <div class="kit-header" onclick="toggleKitExpandido('${kp.label}')">
+        <div class="kit-nome">${kp.label}<span class="kit-tag ok">✓ PRONTO</span></div>
+        <div class="kit-prog"><span>${kp.figs.length} figs</span><span class="kit-expandir">${expandido ? '▲ fechar' : '▼ ver'}</span></div>
+      </div>
+      <div class="kit-figs-expandida ${expandido ? 'aberta' : ''}">
+        ${kp.figs.map(id => `<span class="fig-chip hist">${id}</span>`).join('')}
+      </div>`;
+    wrap.appendChild(card);
+  }
+
+  if (!wrap.children.length) wrap.innerHTML = '<div class="vazio">— nenhum kit ainda —</div>';
+
+  const cardEsp = document.getElementById('card-especiais');
+  if (especiais.length > 0) {
+    cardEsp.style.display = '';
+    document.getElementById('especiais-figs').innerHTML = especiais.map(id => `<span class="fig-especial">${id}</span>`).join('');
+    document.getElementById('badge-esp-count').textContent = especiais.length;
+  } else { cardEsp.style.display = 'none'; }
+}
+
+// ══════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════
+function log(tipo, icone, msg) {
+  const dt = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR');
+  logItems.unshift({ tipo, icone, msg, dt });
+  if (logItems.length > 300) logItems.pop();
+  renderLog();
+}
+function renderLog() {
+  const area = document.getElementById('log-area');
+  if (!logItems.length) { area.innerHTML = '<div class="vazio">— sem eventos —</div>'; return; }
+  area.innerHTML = logItems.map(i =>
+    `<div class="log-item ${i.tipo}"><span>${i.icone}</span><span>${i.msg}<span class="lt">${i.dt}</span></span></div>`).join('');
+}
+function limparLog() { logItems = []; renderLog(); }
+
+// ══════════════════════════════════════════
+// TTS — robusto para Chrome
+// ══════════════════════════════════════════
+setInterval(() => { if (window.speechSynthesis) window.speechSynthesis.resume(); }, 5000);
+
+// ══════════════════════════════════════════
+// SOM — feedback sonoro via Web Audio API
+// ══════════════════════════════════════════
+let _audioCtx = null;
+function _ctx() {
+  if (!_audioCtx || _audioCtx.state === 'closed')
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+
+function playSound(tipo) {
+  try {
+    const ctx = _ctx();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+
+    if (tipo === 'ok') {
+      // Ding ascendente curto — confirmação
+      const osc = ctx.createOscillator();
+      osc.connect(gain);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.linearRampToValueAtTime(1320, now + 0.07);
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now); osc.stop(now + 0.22);
+    } else if (tipo === 'err') {
+      // Buzz grave curto — erro
+      const osc = ctx.createOscillator();
+      osc.connect(gain);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.linearRampToValueAtTime(130, now + 0.18);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
+    }
+  } catch(e) {}
+}
+
+function falar(txt, rate = 3.0) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const _speak = () => {
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'pt-BR'; u.rate = rate;
+    u.onerror = () => {
+      const u2 = new SpeechSynthesisUtterance(txt);
+      u2.lang = 'pt-BR'; u2.rate = rate;
+      setTimeout(() => window.speechSynthesis.speak(u2), 150);
+    };
+    window.speechSynthesis.speak(u);
+  };
+  setTimeout(_speak, 60);
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let _tt;
+function toast(msg, warn = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast vis' + (warn ? ' warn' : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('vis'), 3500);
+}
+
+// ══════════════════════════════════════════
+// EXPORTAR
+// ══════════════════════════════════════════
+function gerarCSV() {
+  const colunas = [], cabecalhos = [];
+  kitsProntos.forEach(kp => { cabecalhos.push(`${kp.label} (PRONTO)`); colunas.push([...kp.figs]); });
+  kits.forEach((kit, i) => {
+    const kitNum = kitsProntos.length + 1 + i;
+    cabecalhos.push(`L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum} (${i === 0 ? 'KIT ATUAL' : `KIT +${i}`})`);
+    colunas.push([...kit]);
+  });
+  if (especiais.length) { cabecalhos.push('ESPECIAIS'); colunas.push([...especiais]); }
+  const maxLen = Math.max(...colunas.map(c => c.length), 1);
+  let csv = `Lote;L${cfg.lote}\nOperador;${cfg.operador}\nData;${new Date().toLocaleString('pt-BR')}\nProcessadas;${processadas}/${limiteTotal}\nExtras;${extras}\nKits prontos;${kitsProntos.length}\n\n`;
+  csv += cabecalhos.join(';') + '\n';
+  for (let r = 0; r < maxLen; r++) { csv += colunas.map(c => c[r] !== undefined ? c[r] : '').join(';') + '\n'; }
+  csv += '\n\nLOG DE EVENTOS\nTipo;Mensagem;Data/Hora\n';
+  [...logItems].reverse().forEach(i => { csv += `${i.tipo};${i.msg.replace(/;/g,'|')};${i.dt}\n`; });
+  return csv;
+}
+
+function gerarEstadoStr() {
+  const linhas = [];
+  kits.forEach((kit, i) => {
+    if (!kit.length) return;
+    linhas.push(`KIT${kitsProntos.length + 1 + i}:${kit.join(',')}`);
+  });
+  return `# Estado Lote L${cfg.lote} — ${new Date().toLocaleString('pt-BR')}\n# Operador: ${cfg.operador}\n# Cole no campo "Kits em formação do lote anterior" no próximo lote\n\n${linhas.join(' | ') || '# Nenhum kit em formação'}`;
+}
+
+function exportarExcel() {
+  baixar('﻿' + gerarCSV(), `FigurinhaOp_L${cfg.lote}_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv;charset=utf-8;');
+  toast('Excel exportado!');
+}
+
+function exportarEstado() {
+  baixar(gerarEstadoStr(), `Estado_L${cfg.lote}_proximo_lote.txt`, 'text/plain');
+  toast('Estado exportado!');
+}
+
+function baixar(conteudo, nome, tipo) {
+  const blob = new Blob([conteudo], { type: tipo });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  a.click();
+}
+
+async function encerrarLote() {
+  // limiteTotal é variável de estado global (cresce +1 a cada extra)
+  if (!confirm(`Encerrar o lote L${cfg.lote}?\n\nKits prontos: ${kitsProntos.length}\nProcessadas: ${processadas}/${limiteTotal}\nExtras: ${extras}\n\nOs arquivos serão salvos.`)) return;
+
+  const csvStr    = gerarCSV();
+  const estadoStr = gerarEstadoStr();
+  const nomeCSV   = `FigurinhaOp_L${cfg.lote}_${new Date().toISOString().slice(0,10)}.csv`;
+  const nomeTXT   = `Estado_L${cfg.lote}_proximo_lote.txt`;
+
+  let salvouPasta = false;
+  if (window.showDirectoryPicker) {
+    try {
+      const dirHandle = await window.showDirectoryPicker({ id: 'figurinhaop', startIn: 'downloads', mode: 'readwrite' });
+      const escrever = async (nome, conteudo) => {
+        const h = await dirHandle.getFileHandle(nome, { create: true });
+        const w = await h.createWritable();
+        await w.write(conteudo); await w.close();
+      };
+      await escrever(nomeCSV, '﻿' + csvStr);
+      await escrever(nomeTXT, estadoStr);
+      toast('2 arquivos salvos na pasta!');
+      salvouPasta = true;
+    } catch (e) {
+      if (e.name !== 'AbortError') console.warn('Pasta falhou, usando download:', e);
+    }
+  }
+  if (!salvouPasta) {
+    baixar('﻿' + csvStr, nomeCSV, 'text/csv;charset=utf-8;');
+    baixar(estadoStr, nomeTXT, 'text/plain');
+  }
+  setTimeout(() => location.reload(), 800);
+}
+
+// ══════════════════════════════════════════
+// TECLADO GLOBAL
+// ══════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (popupAtual) {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      e.preventDefault(); confirmarPopup();
+    }
+    return;
+  }
+  const noInput = document.activeElement !== document.getElementById('teclado-input');
+  if (e.code === 'Space' && noInput) {
+    e.preventDefault();
+    if (reconhecimento) toggleMic();
+  }
+  // Enter fora do campo de teclado → força última leitura de voz
+  if (e.key === 'Enter' && noInput && lastFalaFinal) {
+    e.preventDefault();
+    const fala = lastFalaFinal; lastFalaFinal = '';
+    log('cmd', '⏎', `Força: "${fala.slice(0,30)}"`);
+    processarFala(fala);
+  }
+});
+</script>
+</body>
+</html>

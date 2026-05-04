@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>FigurinhaOp iPhone</title>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--borda:#30363d;
+  --texto:#e6edf3;--texto2:#7d8590;
+  --verde:#3fb950;--verde-d:#238636;
+  --amarelo:#d29922;--amarelo-l:#e3b341;
+  --azul:#388bfd;--roxo:#8957e5;--vermelho:#f85149;--cyan:#39d353;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--texto);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;}
+
+/* ── SETUP ─────────────────────────────────────── */
+#tela-setup{
+  position:fixed;inset:0;overflow-y:auto;
+  background:var(--bg);
+  padding:env(safe-area-inset-top,20px) 20px env(safe-area-inset-bottom,20px);
+}
+.setup-logo{font-size:1.6rem;font-weight:900;color:var(--amarelo-l);margin-top:16px;margin-bottom:2px;}
+.setup-sub{font-size:0.72rem;color:var(--texto2);letter-spacing:1px;margin-bottom:24px;}
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.campo label{font-size:0.68rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto2);}
+.campo input,.campo textarea{
+  background:var(--bg3);border:1.5px solid var(--borda);border-radius:10px;
+  color:var(--texto);font-size:1rem;padding:14px 16px;outline:none;width:100%;
+  transition:border-color 0.15s;
+}
+.campo input:focus,.campo textarea:focus{border-color:var(--amarelo);}
+.campo textarea{resize:none;min-height:80px;font-size:0.85rem;}
+.calc-row{
+  background:var(--bg3);border:1.5px solid var(--borda);border-radius:10px;
+  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;
+}
+.calc-label{font-size:0.68rem;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;}
+.calc-val{font-size:1.4rem;font-weight:900;color:var(--amarelo-l);}
+.btn-iniciar{
+  width:100%;padding:18px;background:var(--amarelo);color:#000;border:none;
+  border-radius:14px;font-size:1.1rem;font-weight:900;letter-spacing:1px;
+  cursor:pointer;margin-top:8px;margin-bottom:20px;
+  -webkit-appearance:none;
+}
+.btn-iniciar:active{background:var(--amarelo-l);}
+.guia-box{background:var(--bg2);border:1.5px solid var(--borda);border-radius:12px;padding:14px 16px;margin-bottom:24px;}
+.guia-box-titulo{font-size:0.75rem;color:var(--amarelo-l);font-weight:700;margin-bottom:10px;}
+.guia-box p{font-size:0.8rem;color:var(--texto2);line-height:1.6;margin-bottom:6px;}
+.guia-box p b{color:var(--texto);}
+.code-line{font-family:'Courier New',monospace;font-size:0.75rem;color:var(--cyan);background:var(--bg3);border-radius:6px;padding:6px 10px;display:block;margin:4px 0;word-break:break-all;}
+
+/* ── APP ────────────────────────────────────────── */
+#tela-app{
+  display:none;position:fixed;inset:0;
+  flex-direction:column;overflow:hidden;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+
+/* STATS TOP */
+.stats-top{
+  background:var(--bg2);border-bottom:1px solid var(--borda);
+  display:flex;align-items:center;gap:0;flex-shrink:0;
+  padding:0;
+}
+.stat-blk{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:10px 4px;border-right:1px solid var(--borda);
+}
+.stat-blk:last-child{border-right:none;}
+.stat-l{font-size:0.55rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto2);margin-bottom:2px;}
+.stat-v{font-size:1.2rem;font-weight:900;line-height:1;}
+.c-azul{color:var(--azul);}
+.c-verde{color:var(--verde);}
+.c-amarelo{color:var(--amarelo-l);}
+.c-roxo{color:var(--roxo);}
+.c-cinza{color:var(--texto2);}
+.c-alerta{color:var(--vermelho);}
+
+/* TRANSCRICAO */
+.trans-area{
+  background:var(--bg3);border-bottom:1px solid var(--borda);
+  padding:10px 16px;min-height:54px;display:flex;align-items:center;
+  font-size:0.85rem;color:var(--texto2);flex-shrink:0;
+  font-style:italic;line-height:1.4;
+}
+.trans-area.ativa{color:var(--amarelo-l);font-style:normal;}
+
+/* MIC CENTRAL */
+.mic-central{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:14px;padding:16px;overflow:hidden;
+}
+.mic-btn-grande{
+  width:130px;height:130px;border-radius:50%;
+  border:3px solid var(--borda);background:var(--bg2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.2rem;cursor:pointer;outline:none;
+  transition:all 0.2s;flex-shrink:0;
+  -webkit-appearance:none;
+}
+.mic-btn-grande.ouvindo{
+  border-color:var(--vermelho);background:rgba(248,81,73,0.12);
+  animation:pulse 1.4s ease-in-out infinite;
+}
+.mic-btn-grande.pausado{border-color:var(--amarelo-l);background:rgba(210,153,34,0.1);}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,0.35)}
+  50%{box-shadow:0 0 0 22px rgba(248,81,73,0)}
+}
+.mic-status{font-size:0.8rem;color:var(--texto2);text-align:center;font-weight:500;}
+.mic-status.ouvindo{color:var(--vermelho);}
+.mic-status.pausado{color:var(--amarelo-l);}
+
+/* LOG RECENTE */
+.log-recente{
+  flex-shrink:0;max-height:160px;overflow-y:auto;
+  border-top:1px solid var(--borda);
+  padding:6px 0;
+}
+.log-recente::-webkit-scrollbar{display:none;}
+.lr-item{
+  font-size:0.7rem;padding:5px 14px;display:flex;gap:6px;align-items:flex-start;
+  border-bottom:1px solid rgba(48,54,61,0.4);color:var(--texto2);line-height:1.4;
+}
+.lr-item:last-child{border-bottom:none;}
+.lr-item.ok{color:var(--verde);}
+.lr-item.rep{color:var(--amarelo-l);}
+.lr-item.esp{color:var(--roxo);}
+.lr-item.ext{color:var(--texto2);}
+.lr-item.cmd{color:var(--azul);}
+.lr-item.kit-done{color:var(--cyan);}
+.lr-hora{font-size:0.58rem;color:var(--borda);flex-shrink:0;margin-top:1px;}
+
+/* AÇÕES BOTTOM */
+.acoes-bottom{
+  background:var(--bg2);border-top:1px solid var(--borda);
+  display:flex;gap:0;flex-shrink:0;
+}
+.btn-acao{
+  flex:1;padding:16px 8px;background:transparent;border:none;border-right:1px solid var(--borda);
+  color:var(--texto2);font-size:0.8rem;font-weight:600;letter-spacing:0.5px;
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  -webkit-appearance:none;transition:background 0.15s;
+}
+.btn-acao:last-child{border-right:none;}
+.btn-acao:active{background:rgba(255,255,255,0.05);}
+.btn-acao .ico{font-size:1.3rem;line-height:1;}
+.btn-acao.danger{color:var(--vermelho);}
+.btn-acao.primary{color:var(--verde);}
+.btn-acao.extra-btn{color:var(--roxo);}
+
+/* POPUP OVERLAY */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;z-index:100;
+  opacity:0;pointer-events:none;transition:opacity 0.15s;padding:20px;
+}
+.overlay.vis{opacity:1;pointer-events:all;}
+.popup{
+  background:var(--bg2);border-radius:18px;padding:28px 24px;
+  width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;
+  animation:popupIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popupIn{from{transform:scale(0.85) translateY(12px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.popup.tipo-rep{border:2px solid var(--amarelo);}
+.popup.tipo-rep::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--amarelo);}
+.popup.tipo-esp{border:2px solid var(--roxo);}
+.popup.tipo-esp::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--roxo);}
+.popup.tipo-kit{border:2px solid var(--verde);}
+.popup.tipo-kit::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--verde);}
+.popup.tipo-ext{border:2px solid var(--roxo);}
+.popup.tipo-ext::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--roxo);}
+.popup-icone{font-size:2.2rem;margin-bottom:6px;}
+.popup-titulo{font-size:1.2rem;font-weight:900;margin-bottom:10px;}
+.popup-fig-num{font-size:3.5rem;font-weight:900;line-height:1;color:var(--amarelo-l);margin:6px 0;letter-spacing:2px;}
+.popup-destino{font-size:1.8rem;font-weight:900;line-height:1.2;margin:10px 0 14px;}
+.popup-destino.kit{color:var(--azul);}
+.popup-destino.esp{color:var(--roxo);}
+.popup-destino.done{color:var(--verde);font-size:1.3rem;line-height:1.4;}
+.popup-hint{font-size:0.72rem;color:var(--texto2);margin-bottom:14px;}
+.popup-btn{
+  width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
+  font-size:1rem;font-weight:700;transition:all 0.15s;
+  -webkit-appearance:none;
+}
+.pb-amarelo{background:var(--amarelo);color:#000;}
+.pb-amarelo:active{background:var(--amarelo-l);}
+.pb-roxo{background:var(--roxo);color:#fff;}
+.pb-roxo:active{opacity:0.85;}
+.pb-verde{background:var(--verde-d);color:#fff;}
+.pb-verde:active{background:var(--verde);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--bg2);border:1.5px solid var(--verde-d);border-radius:12px;
+  padding:10px 20px;font-size:0.82rem;color:var(--verde);z-index:200;
+  opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;max-width:90vw;
+}
+.toast.vis{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.warn{border-color:var(--vermelho);color:var(--vermelho);}
+
+/* MODAL ENCERRAR */
+.modal-enc{
+  position:fixed;inset:0;background:rgba(0,0,0,0.9);
+  display:none;align-items:flex-end;justify-content:center;z-index:150;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.modal-enc.vis{display:flex;}
+.modal-enc-box{
+  background:var(--bg2);border-radius:18px 18px 0 0;padding:24px 20px 28px;
+  width:100%;max-width:480px;
+}
+.modal-enc-titulo{font-size:1.1rem;font-weight:900;margin-bottom:6px;color:var(--vermelho);}
+.modal-enc-info{font-size:0.85rem;color:var(--texto2);margin-bottom:18px;line-height:1.6;}
+.modal-enc-btns{display:flex;flex-direction:column;gap:10px;}
+.btn-enc-confirmar{
+  padding:16px;background:var(--vermelho);color:#fff;border:none;border-radius:12px;
+  font-size:1rem;font-weight:700;cursor:pointer;-webkit-appearance:none;
+}
+.btn-enc-cancelar{
+  padding:16px;background:var(--bg3);color:var(--texto2);border:1.5px solid var(--borda);border-radius:12px;
+  font-size:1rem;font-weight:600;cursor:pointer;-webkit-appearance:none;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══════════════════════════════════════════ -->
+<div id="tela-setup">
+  <div class="setup-logo">⚽ FigurinhaOp</div>
+  <div class="setup-sub">COPA 2026 — VERSÃO IPHONE</div>
+
+  <div class="campo">
+    <label>Operador</label>
+    <input type="text" id="cfg-operador" placeholder="Seu nome" autocomplete="off">
+  </div>
+  <div class="campo">
+    <label>Número do Lote</label>
+    <input type="number" id="cfg-lote" value="1" min="1" inputmode="numeric">
+  </div>
+  <div class="campo">
+    <label>Figurinhas por Kit</label>
+    <input type="number" id="cfg-kit" value="50" min="1" inputmode="numeric" oninput="recalcularKits()">
+  </div>
+  <div class="campo">
+    <label>Pacotes no Lote</label>
+    <input type="number" id="cfg-pacotes" value="100" min="1" inputmode="numeric" oninput="recalcularKits()">
+  </div>
+  <div class="calc-row">
+    <span class="calc-label">Kits Esperados</span>
+    <span class="calc-val" id="kits-esperados-calc">14</span>
+  </div>
+  <div class="campo">
+    <label>Figurinhas Especiais</label>
+    <input type="text" id="cfg-especiais" placeholder="BRA10, POR15, ARG10..." autocomplete="off" autocorrect="off" autocapitalize="characters">
+  </div>
+  <div class="campo">
+    <label>Kits em formação (lote anterior)</label>
+    <textarea id="cfg-estoque" placeholder="Deixe vazio no primeiro lote.&#10;Ex: KIT2:BRA1,POR15 | KIT3:ESP3"></textarea>
+  </div>
+
+  <button class="btn-iniciar" onclick="iniciarLote()">▶ INICIAR LOTE</button>
+
+  <div class="guia-box">
+    <div class="guia-box-titulo">⚠️ Microfone não funciona?</div>
+    <p>O Safari iOS exige <b>HTTPS</b> para microfone em rede WiFi. Opções:</p>
+    <p><b>1. USB + iTunes (mais simples):</b> conecte o iPhone ao computador via cabo, faça port forward no iTunes → acesse pelo Safari:<br>
+    <code class="code-line">http://localhost:8080/FigurinhaOp_iPhone.html</code></p>
+    <p><b>2. ngrok (WiFi sem cabo):</b> no computador execute:<br>
+    <code class="code-line">ngrok http 8080</code><br>
+    Use o link <b>https://</b> gerado pelo ngrok no Safari do iPhone.</p>
+    <p><b>3. Mesma rede WiFi (pode funcionar em iOS mais antigo):</b><br>
+    <code class="code-line">http://[IP-DO-COMPUTADOR]:8080/FigurinhaOp_iPhone.html</code></p>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════ -->
+<div id="tela-app">
+
+  <!-- STATS TOP -->
+  <div class="stats-top">
+    <div class="stat-blk">
+      <div class="stat-l">Processadas</div>
+      <div class="stat-v c-azul" id="s-proc">0</div>
+    </div>
+    <div class="stat-blk">
+      <div class="stat-l">Kit Atual</div>
+      <div class="stat-v c-verde" id="s-kit-atual">0/50</div>
+    </div>
+    <div class="stat-blk">
+      <div class="stat-l">Prontos</div>
+      <div class="stat-v c-verde" id="s-prontos">0</div>
+    </div>
+    <div class="stat-blk">
+      <div class="stat-l">Fila</div>
+      <div class="stat-v c-amarelo" id="s-fila">0</div>
+    </div>
+    <div class="stat-blk">
+      <div class="stat-l">Extras</div>
+      <div class="stat-v c-cinza" id="s-ext">0</div>
+    </div>
+  </div>
+
+  <!-- TRANSCRICAO -->
+  <div class="trans-area" id="transcricao">Toque no microfone para começar...</div>
+
+  <!-- MIC CENTRAL -->
+  <div class="mic-central">
+    <button class="mic-btn-grande" id="mic-btn" onclick="toggleMic()">🎙️</button>
+    <div class="mic-status" id="mic-status">Toque para ativar</div>
+  </div>
+
+  <!-- LOG RECENTE -->
+  <div class="log-recente" id="log-recente">
+    <div class="lr-item cmd"><span>💡</span><span>Log aparece aqui</span></div>
+  </div>
+
+  <!-- AÇÕES BOTTOM -->
+  <div class="acoes-bottom">
+    <button class="btn-acao" onclick="cmdVoltar()">
+      <span class="ico">↩</span><span>Voltar</span>
+    </button>
+    <button class="btn-acao extra-btn" onclick="cmdExtra()">
+      <span class="ico">📌</span><span>Extra</span>
+    </button>
+    <button class="btn-acao primary" onclick="exportarExcel()">
+      <span class="ico">↓</span><span>Exportar</span>
+    </button>
+    <button class="btn-acao danger" onclick="abrirModalEncerrar()">
+      <span class="ico">⏹</span><span>Encerrar</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- POPUP OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="popup" id="popup">
+    <div class="popup-icone" id="p-icone"></div>
+    <div class="popup-titulo" id="p-titulo"></div>
+    <div id="p-conteudo"></div>
+    <div class="popup-hint" id="p-hint"></div>
+    <div id="p-btns"></div>
+  </div>
+</div>
+
+<!-- MODAL ENCERRAR -->
+<div class="modal-enc" id="modal-enc">
+  <div class="modal-enc-box">
+    <div class="modal-enc-titulo">⏹ Encerrar Lote?</div>
+    <div class="modal-enc-info" id="modal-enc-info">...</div>
+    <div class="modal-enc-btns">
+      <button class="btn-enc-confirmar" onclick="encerrarLote()">Encerrar e Exportar</button>
+      <button class="btn-enc-cancelar" onclick="fecharModalEncerrar()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONSTANTES — FIGURINHAS COPA 2026
+// ══════════════════════════════════════════
+const PREFIXOS_VALIDOS = {
+  FWC:{min:0,max:19},
+  ALG:{min:1,max:20},ARG:{min:1,max:20},AUS:{min:1,max:20},AUT:{min:1,max:20},
+  BEL:{min:1,max:20},BIH:{min:1,max:20},BRA:{min:1,max:20},CAN:{min:1,max:20},
+  CC:{min:1,max:14},CIV:{min:1,max:20},COD:{min:1,max:20},COL:{min:1,max:20},
+  CPV:{min:1,max:20},CRO:{min:1,max:20},CUW:{min:1,max:20},CZE:{min:1,max:20},
+  ECU:{min:1,max:20},EGY:{min:1,max:20},ENG:{min:1,max:20},ESP:{min:1,max:20},
+  FRA:{min:1,max:20},GER:{min:1,max:20},GHA:{min:1,max:20},HAI:{min:1,max:20},
+  IRN:{min:1,max:20},IRQ:{min:1,max:20},JOR:{min:1,max:20},JPN:{min:1,max:20},
+  KOR:{min:1,max:20},KSA:{min:1,max:20},MAR:{min:1,max:20},MEX:{min:1,max:20},
+  NED:{min:1,max:20},NOR:{min:1,max:20},NZL:{min:1,max:20},PAN:{min:1,max:20},
+  PAR:{min:1,max:20},POR:{min:1,max:20},QAT:{min:1,max:20},RSA:{min:1,max:20},
+  SCO:{min:1,max:20},SEN:{min:1,max:20},SUI:{min:1,max:20},SWE:{min:1,max:20},
+  TUN:{min:1,max:20},TUR:{min:1,max:20},URU:{min:1,max:20},USA:{min:1,max:20},
+  UZB:{min:1,max:20}
+};
+
+const PAIS_CODIGO = {
+  'fwc':'FWC','copa':'FWC','fifa':'FWC','mundial':'FWC',
+  'copa do mundo':'FWC','world cup':'FWC','copa mundo':'FWC',
+  'argelia':'ALG','algeria':'ALG','alg':'ALG','argelino':'ALG',
+  'argentina':'ARG','arg':'ARG','argentino':'ARG','albiceleste':'ARG',
+  'australia':'AUS','aus':'AUS','aussie':'AUS','australiana':'AUS',
+  'aos':'AUS','a uns':'AUS','auss':'AUS',
+  'austria':'AUT','aut':'AUT','austriaco':'AUT','austriaca':'AUT',
+  'auto':'AUT',
+  'belgica':'BEL','belgium':'BEL','bel':'BEL','belga':'BEL',
+  'belgio':'BEL','diables rouges':'BEL',
+  'bosnia e herzegovina':'BIH','bosnia':'BIH','bih':'BIH',
+  'bos':'BIH','herzegovina':'BIH',
+  'brasil':'BRA','brazil':'BRA','bra':'BRA',
+  'brasileira':'BRA','brasileiro':'BRA','brasileiros':'BRA',
+  'canarinho':'BRA','verde amarelo':'BRA','selecao':'BRA',
+  'pra':'BRA','bras':'BRA',
+  'canada':'CAN','can':'CAN','canadense':'CAN','canadiano':'CAN',
+  'cam':'CAN','sean':'CAN',
+  'paises baixos':'CC','cc':'CC','baixos':'CC','pais baixo':'CC','paises':'CC',
+  'costa do marfim':'CIV','marfim':'CIV','civ':'CIV',
+  'ivory coast':'CIV','costa marfim':'CIV','costa do marfin':'CIV',
+  'marfinense':'CIV','costa':'CIV','c e v':'CIV','cev':'CIV',
+  'congo dr':'COD','congo':'COD','cod':'COD',
+  'dr congo':'COD','congo democratico':'COD','republica congo':'COD',
+  'colombia':'COL','col':'COL','colombiana':'COL','colombiano':'COL',
+  'cool':'COL',
+  'cabo verde':'CPV','cabo':'CPV','cpv':'CPV',
+  'cape verde':'CPV','verde':'CPV','ilhas de cabo verde':'CPV',
+  'c p v':'CPV','campanha':'CPV',
+  'croacia':'CRO','croatia':'CRO','cro':'CRO','croata':'CRO','hrvatska':'CRO',
+  'curacao':'CUW','cuw':'CUW','curaca':'CUW','curaso':'CUW',
+  'se o w':'CUW','seow':'CUW',
+  'republica tcheca':'CZE','tcheca':'CZE','tcheco':'CZE',
+  'cze':'CZE','tche':'CZE','czech':'CZE','czechia':'CZE',
+  'chequia':'CZE','checa':'CZE','republica checa':'CZE',
+  'tchequinha':'CZE','cce':'CZE','republica':'CZE',
+  'equador':'ECU','ecuador':'ECU','ecu':'ECU',
+  'equatoriano':'ECU','la tri':'ECU',
+  'egito':'EGY','egypt':'EGY','egy':'EGY',
+  'egipto':'EGY','egipcio':'EGY',
+  'gy':'EGY','egey':'EGY','e g e y':'EGY',
+  'inglaterra':'ENG','england':'ENG','eng':'ENG',
+  'ingles':'ENG','inglesa':'ENG','ingleses':'ENG',
+  'britanica':'ENG','three lions':'ENG','enge':'ENG','engle':'ENG',
+  'espanha':'ESP','spain':'ESP','esp':'ESP',
+  'espanhola':'ESP','espanhol':'ESP','roja':'ESP','la roja':'ESP',
+  'franca':'FRA','france':'FRA','fra':'FRA',
+  'francesa':'FRA','frances':'FRA','franceses':'FRA',
+  'les bleus':'FRA','galo':'FRA','galos':'FRA','fa':'FRA',
+  'alemanha':'GER','germany':'GER','ger':'GER',
+  'alema':'GER','deutschland':'GER','germania':'GER',
+  'erm':'GER','e rm':'GER','ver':'GER',
+  'gana':'GHA','ghana':'GHA','gha':'GHA',
+  'ganense':'GHA','black stars':'GHA','ga':'GHA','ch':'GHA',
+  'haiti':'HAI','hai':'HAI','haitiano':'HAI','haitiana':'HAI',
+  'hi':'HAI','h i':'HAI','art':'HAI',
+  'ira':'IRN','iran':'IRN','irn':'IRN','iraniano':'IRN','persia':'IRN','persas':'IRN',
+  'iraque':'IRQ','iraq':'IRQ','irq':'IRQ','iraquiano':'IRQ',
+  'jordania':'JOR','jordan':'JOR','jor':'JOR',
+  'jordao':'JOR','jordanio':'JOR','john':'JOR','joran':'JOR',
+  'japao':'JPN','japan':'JPN','jpn':'JPN',
+  'japones':'JPN','japonesa':'JPN','samurai':'JPN',
+  'coreia do sul':'KOR','coreia sul':'KOR','coreia':'KOR',
+  'korea':'KOR','kor':'KOR','south korea':'KOR',
+  'coreana':'KOR','coreano':'KOR',
+  'core':'KOR','corei':'KOR','core i':'KOR',
+  'que o r':'KOR','queor':'KOR','kr':'KOR',
+  'arabia saudita':'KSA','arabia':'KSA','saudita':'KSA',
+  'ksa':'KSA','saudi':'KSA','saudi arabia':'KSA','arabes':'KSA',
+  'marrocos':'MAR','morocco':'MAR','mar':'MAR',
+  'marroquino':'MAR','atlas':'MAR','nar':'MAR','mr':'MAR',
+  'mexico':'MEX','mex':'MEX','mexicano':'MEX','mexicanos':'MEX','el tri':'MEX',
+  'nex':'MEX',
+  'holanda':'NED','netherlands':'NED','ned':'NED',
+  'holandesa':'NED','holandeses':'NED','nederland':'NED',
+  'laranja':'NED','laranjada':'NED','med':'NED','need':'NED','rolando':'NED',
+  'noruega':'NOR','norway':'NOR','nor':'NOR',
+  'norueguesa':'NOR','noruegues':'NOR','mor':'NOR',
+  'nova zelandia':'NZL','nova zelanda':'NZL','zelandia':'NZL',
+  'zelanda':'NZL','nzl':'NZL','new zealand':'NZL',
+  'kiwi':'NZL','kiwis':'NZL','all whites':'NZL','nova':'NZL',
+  'ml':'NZL','ncl':'NZL',
+  'panama':'PAN','pan':'PAN','panamense':'PAN','panameno':'PAN',
+  'ban':'PAN','pm':'PAN',
+  'paraguai':'PAR','paraguay':'PAR','par':'PAR',
+  'paraguaio':'PAR','paraguaia':'PAR','guarani':'PAR',
+  'bar':'PAR','baraguai':'PAR',
+  'portugal':'POR','por':'POR','portuguesa':'POR',
+  'portugues':'POR','luso':'POR','lusas':'POR',
+  'lusitania':'POR','navegadores':'POR',
+  'pior':'POR','bor':'POR','bortugal':'POR','pr':'POR',
+  'e o r':'POR','eor':'POR',
+  'catar':'QAT','qatar':'QAT','qat':'QAT',
+  'quatar':'QAT','catari':'QAT',
+  'que a t':'QAT','que a te':'QAT','que at':'QAT','que a':'QAT',
+  'kata':'QAT','cata':'QAT','quata':'QAT',
+  'qt':'QAT','q t':'QAT','catarro':'QAT',
+  'africa do sul':'RSA','africa sul':'RSA','africa':'RSA',
+  'rsa':'RSA','south africa':'RSA','sul africana':'RSA',
+  'bafana':'RSA','sul':'RSA',
+  'escocia':'SCO','scotland':'SCO','sco':'SCO',
+  'escocesa':'SCO','escoces':'SCO','escoceses':'SCO','escola':'SCO',
+  'senegal':'SEN','sen':'SEN','senegalesa':'SEN','teranga':'SEN',
+  'suica':'SUI','switzerland':'SUI','sui':'SUI',
+  'suissa':'SUI','swiss':'SUI','helvetia':'SUI','sue':'SUI',
+  'suecia':'SWE','sweden':'SWE','swe':'SWE',
+  'sueca':'SWE','sueco':'SWE','suecos':'SWE',
+  'tunisia':'TUN','tun':'TUN','tunis':'TUN',
+  'tunisiana':'TUN','tunisiano':'TUN','tum':'TUN','dun':'TUN',
+  'turquia':'TUR','turkey':'TUR','tur':'TUR',
+  'turca':'TUR','turco':'TUR','turcos':'TUR','turkiye':'TUR',
+  'uruguai':'URU','uruguay':'URU','uru':'URU',
+  'uruguaio':'URU','uruguaia':'URU','charruas':'URU','celeste':'URU','rua':'URU',
+  'estados unidos':'USA','eua':'USA','usa':'USA',
+  'united states':'USA','americanos':'USA','estados':'USA',
+  'uzbequistao':'UZB','uzbekistao':'UZB','uzb':'UZB',
+  'uzbequi':'UZB','uzbek':'UZB','z':'UZB',
+  'al':'ALG','ar':'ARG','be':'BEL','bi':'BIH','br':'BRA',
+  'ca':'CAN','ci':'CIV','cp':'CPV','cr':'CRO','cu':'CUW',
+  'cz':'CZE','ec':'ECU','eg':'EGY','en':'ENG','es':'ESP',
+  'fr':'FRA','ge':'GER','gh':'GHA','ha':'HAI','jo':'JOR',
+  'jp':'JPN','ko':'KOR','ks':'KSA','ma':'MAR','me':'MEX',
+  'ne':'NED','no':'NOR','nz':'NZL','po':'POR','qa':'QAT',
+  'rs':'RSA','sc':'SCO','se':'SEN','su':'SUI','sw':'SWE',
+  'ur':'URU','us':'USA','uz':'UZB',
+};
+
+const PREFIXO_NOME = {
+  'FWC':'Copa do Mundo','ALG':'Argélia','ARG':'Argentina','AUS':'Austrália',
+  'AUT':'Áustria','BEL':'Bélgica','BIH':'Bósnia','BRA':'Brasil',
+  'CAN':'Canadá','CC':'Países Baixos','CIV':'Costa do Marfim',
+  'COD':'Congo DR','COL':'Colômbia','CPV':'Cabo Verde','CRO':'Croácia',
+  'CUW':'Curaçao','CZE':'Rep. Tcheca','ECU':'Equador','EGY':'Egito',
+  'ENG':'Inglaterra','ESP':'Espanha','FRA':'França','GER':'Alemanha',
+  'GHA':'Gana','HAI':'Haiti','IRN':'Irã','IRQ':'Iraque',
+  'JOR':'Jordânia','JPN':'Japão','KOR':'Coreia do Sul','KSA':'Arábia Saudita',
+  'MAR':'Marrocos','MEX':'México','NED':'Holanda','NOR':'Noruega',
+  'NZL':'Nova Zelândia','PAN':'Panamá','PAR':'Paraguai','POR':'Portugal',
+  'QAT':'Catar','RSA':'África do Sul','SCO':'Escócia','SEN':'Senegal',
+  'SUI':'Suíça','SWE':'Suécia','TUN':'Tunísia','TUR':'Turquia',
+  'URU':'Uruguai','USA':'Estados Unidos','UZB':'Uzbequistão',
+};
+function nomePais(id) {
+  const m = id.match(/^([A-Z]+)/);
+  return m ? (PREFIXO_NOME[m[1]] || m[1]) : id;
+}
+
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+}
+
+function validarFigurinaID(id) {
+  const m = id.match(/^([A-Z]+)(\d+)$/);
+  if (!m) return false;
+  const regra = PREFIXOS_VALIDOS[m[1]];
+  if (!regra) return false;
+  const n = parseInt(m[2]);
+  return n >= regra.min && n <= regra.max;
+}
+
+// ══════════════════════════════════════════
+// ESTADO
+// ══════════════════════════════════════════
+let cfg = {};
+let kits = [], kitsSets = [], kitsProntos = [], especiais = [];
+let listaEspeciais = new Set();
+let extras = 0;
+let processadas = 0;
+let limiteTotal = 0;
+let historico = [];
+let logItems = [];
+let popupFila = [], popupAtual = null, filaVoz = [];
+let micAtivo = false, micRodando = false, reconhecimento = null;
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+function recalcularKits() {
+  const p = parseInt(document.getElementById('cfg-pacotes').value) || 0;
+  const k = parseInt(document.getElementById('cfg-kit').value) || 1;
+  document.getElementById('kits-esperados-calc').textContent = Math.floor((p * 7) / k);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  recalcularKits();
+  const salvas = localStorage.getItem('figurinhaop_especiais');
+  if (salvas) document.getElementById('cfg-especiais').value = salvas;
+  document.getElementById('cfg-especiais').addEventListener('input', () => {
+    localStorage.setItem('figurinhaop_especiais', document.getElementById('cfg-especiais').value);
+  });
+});
+
+function parsearEstoqueInicial(txt) {
+  if (!txt.trim()) return;
+  txt.split('|').forEach(parte => {
+    const m = parte.trim().match(/KIT\d+:(.+)/i);
+    if (!m) return;
+    const ids = m[1].split(',').map(s => s.trim().toUpperCase()).filter(s => validarFigurinaID(s));
+    if (!ids.length) return;
+    kits.push([]); kitsSets.push(new Set());
+    const idx = kits.length - 1;
+    ids.forEach(id => { kits[idx].push(id); kitsSets[idx].add(id); });
+  });
+}
+
+function iniciarLote() {
+  cfg.operador     = document.getElementById('cfg-operador').value.trim() || 'Operador';
+  cfg.lote         = parseInt(document.getElementById('cfg-lote').value) || 1;
+  cfg.tamanhoKit   = parseInt(document.getElementById('cfg-kit').value) || 50;
+  cfg.totalPacotes = parseInt(document.getElementById('cfg-pacotes').value) || 100;
+  cfg.kitsEsperados = Math.floor((cfg.totalPacotes * 7) / cfg.tamanhoKit);
+  limiteTotal = cfg.totalPacotes * 7;
+
+  listaEspeciais = new Set();
+  document.getElementById('cfg-especiais').value.split(',').forEach(s => {
+    const id = s.trim().toUpperCase();
+    if (validarFigurinaID(id)) listaEspeciais.add(id);
+  });
+
+  kits = [[]]; kitsSets = [new Set()];
+  parsearEstoqueInicial(document.getElementById('cfg-estoque').value);
+
+  document.getElementById('tela-setup').style.display = 'none';
+  const app = document.getElementById('tela-app');
+  app.style.display = 'flex';
+
+  iniciarReconhecimento();
+  atualizarUI();
+  log('cmd', '🟢', `Lote L${cfg.lote} iniciado`);
+  toast('Lote iniciado! Toque no microfone.');
+}
+
+// ══════════════════════════════════════════
+// VOZ — Web Speech API
+// ══════════════════════════════════════════
+function receberTranscricao(texto) {
+  const el = document.getElementById('transcricao');
+  el.textContent = texto;
+  el.className = 'trans-area' + (micAtivo ? ' ativa' : '');
+  const fala = texto.toLowerCase();
+  if (popupAtual) {
+    if (/\b(ok|okay)\b/.test(fala)) confirmarPopup();
+    else {
+      const { validos } = extrairFigurinhas(fala);
+      if (validos.length) { filaVoz.push(...validos); }
+      else {
+        if (/\d/.test(fala) || fala.trim().split(/\s+/).length >= 2) {
+          playSound('err');
+          log('cmd', '❓', `Não identificou: "${fala.slice(0,40)}"`);
+        }
+      }
+    }
+  } else {
+    processarFala(fala);
+  }
+}
+
+function iniciarReconhecimento() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Use Chrome ou Safari para voz.'); return; }
+  reconhecimento = new SR();
+  reconhecimento.lang = 'pt-BR';
+  reconhecimento.continuous = true;
+  reconhecimento.interimResults = true;
+  reconhecimento.maxAlternatives = 1;
+  reconhecimento.onstart = () => { micRodando = true; };
+  reconhecimento.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t + ' ';
+      else interim += t;
+    }
+    const el = document.getElementById('transcricao');
+    el.textContent = (interim || final).trim();
+    el.className = 'trans-area' + (micAtivo ? ' ativa' : '');
+    if (!final.trim()) return;
+    receberTranscricao(final.trim());
+  };
+  reconhecimento.onerror = (e) => {
+    if (e.error === 'no-speech' || e.error === 'aborted') return;
+    log('cmd', '⚠️', `Voz: ${e.error}`);
+    micRodando = false;
+    atualizarMicStatus();
+  };
+  reconhecimento.onend = () => {
+    micRodando = false;
+    if (micAtivo) setTimeout(() => { if (micAtivo && !micRodando) try { reconhecimento.start(); } catch(e){} }, 200);
+  };
+}
+
+function toggleMic() {
+  if (!reconhecimento) return;
+  micAtivo = !micAtivo;
+  const btn = document.getElementById('mic-btn');
+  if (micAtivo) {
+    btn.className = 'mic-btn-grande ouvindo'; btn.textContent = '🔴';
+    if (!micRodando) try { reconhecimento.start(); } catch(e) {}
+  } else {
+    btn.className = 'mic-btn-grande pausado'; btn.textContent = '▶️';
+    try { reconhecimento.stop(); } catch(e) {}
+    micRodando = false;
+    const el = document.getElementById('transcricao');
+    el.textContent = '— Pausado —'; el.className = 'trans-area';
+  }
+  atualizarMicStatus();
+}
+
+function atualizarMicStatus() {
+  const el = document.getElementById('mic-status');
+  if (micAtivo) { el.textContent = '🎙️ Ouvindo...'; el.className = 'mic-status ouvindo'; }
+  else          { el.textContent = 'Toque para ativar'; el.className = 'mic-status pausado'; }
+}
+
+// ══════════════════════════════════════════
+// PARSING NUMÉRICO PT-BR
+// ══════════════════════════════════════════
+const CENTENAS = {
+  'cem':100,'cento':100,'duzentos':200,'duzentas':200,'trezentos':300,'trezentas':300,
+  'quatrocentos':400,'quatrocentas':400,'quinhentos':500,'quinhentas':500,
+  'seiscentos':600,'seiscentas':600,'setecentos':700,'setecentas':700,
+  'oitocentos':800,'oitocentas':800,'novecentos':900,'novecentas':900
+};
+const DEZENAS = {'vinte':20,'trinta':30,'quarenta':40,'cinquenta':50,'sessenta':60,'setenta':70,'oitenta':80,'noventa':90};
+const UNIDADES = {
+  'zero':0,'um':1,'uma':1,'dois':2,'duas':2,
+  'tres':3,'três':3,
+  'quatro':4,'cinco':5,'seis':6,'sete':7,'oito':8,'nove':9,'dez':10,
+  'onze':11,'doze':12,'treze':13,'quatorze':14,'catorze':14,
+  'quinze':15,'dezesseis':16,'dezessete':17,'dezoito':18,'dezenove':19
+};
+
+function parsearNumPT(tokens, start) {
+  let i = start, acc = 0, consumido = 0;
+  const t = tokens[i];
+  if (!t) return null;
+  if (CENTENAS[t] !== undefined) {
+    acc += CENTENAS[t]; consumido++; i++;
+    if (tokens[i] === 'e') { i++; consumido++;
+      if (tokens[i] && DEZENAS[tokens[i]] !== undefined) {
+        acc += DEZENAS[tokens[i]]; consumido++; i++;
+        if (tokens[i] === 'e') { i++; consumido++; }
+        if (tokens[i] && UNIDADES[tokens[i]] !== undefined) { acc += UNIDADES[tokens[i]]; consumido++; i++; }
+      } else if (tokens[i] && UNIDADES[tokens[i]] !== undefined) {
+        acc += UNIDADES[tokens[i]]; consumido++; i++;
+      } else { consumido--; i--; }
+    }
+  } else if (DEZENAS[t] !== undefined) {
+    acc += DEZENAS[t]; consumido++; i++;
+    if (tokens[i] === 'e') { i++; consumido++; }
+    if (tokens[i] && UNIDADES[tokens[i]] !== undefined) { acc += UNIDADES[tokens[i]]; consumido++; i++; }
+  } else if (UNIDADES[t] !== undefined) {
+    acc += UNIDADES[t]; consumido++; i++;
+  } else return null;
+  return consumido > 0 ? [acc, consumido] : null;
+}
+
+// ══════════════════════════════════════════
+// PARSING DE FIGURINHAS
+// ══════════════════════════════════════════
+function extrairFigurinhas(fala) {
+  const tokensNorm = norm(fala).replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(t => t);
+  const tokensRaw  = fala.toLowerCase().replace(/[^a-záéíóúâêîôûãõç0-9\s]/g,' ').split(/\s+/).filter(t => t);
+  const validos = [], invalidos = [];
+  let i = 0;
+  while (i < tokensNorm.length) {
+    let prefixo = null, consumidoPais = 0;
+    for (let len = 3; len >= 1; len--) {
+      if (i + len > tokensNorm.length) continue;
+      const candidato = tokensNorm.slice(i, i + len).join(' ');
+      if (PAIS_CODIGO[candidato]) { prefixo = PAIS_CODIGO[candidato]; consumidoPais = len; break; }
+    }
+    if (prefixo !== null) {
+      const j = i + consumidoPais;
+      let numero = null, consumidoNum = 0;
+      if (j < tokensNorm.length && /^\d+$/.test(tokensNorm[j])) {
+        numero = parseInt(tokensNorm[j]); consumidoNum = 1;
+      } else if (j < tokensNorm.length) {
+        const mEmb = tokensNorm[j].match(/^[a-z]*(\d+)$/);
+        if (mEmb) { numero = parseInt(mEmb[1]); consumidoNum = 1; }
+        else { const res = parsearNumPT(tokensRaw, j); if (res) { [numero, consumidoNum] = res; } }
+      }
+      if (numero !== null) {
+        const id = prefixo + numero;
+        if (validarFigurinaID(id)) validos.push(id); else invalidos.push(id);
+        i += consumidoPais + consumidoNum;
+      } else { i += consumidoPais; }
+      continue;
+    }
+    const t = tokensNorm[i];
+    const mCodigo = t.match(/^([a-z]{2,4})(\d{1,2})$/);
+    if (mCodigo) {
+      const id = (mCodigo[1] + mCodigo[2]).toUpperCase();
+      if (validarFigurinaID(id)) validos.push(id); else invalidos.push(id);
+      i++; continue;
+    }
+    {
+      let found = null;
+      outer: for (let nPfx = 1; nPfx <= 4; nPfx++) {
+        if (i + nPfx > tokensNorm.length) break;
+        const pfxToks = tokensNorm.slice(i, i + nPfx);
+        if (nPfx > 1 && !pfxToks.slice(0,-1).every(tk => /^[a-z]+$/.test(tk))) continue;
+        const lastTok = pfxToks[pfxToks.length - 1];
+        if (/^[a-z]+$/.test(lastTok)) {
+          const pfxKey = pfxToks.join('');
+          const pfxUpper = pfxKey.toUpperCase();
+          const pfxFinal = PREFIXOS_VALIDOS[pfxUpper] ? pfxUpper : (PAIS_CODIGO[pfxKey] || null);
+          if (pfxFinal) {
+            const j = i + nPfx;
+            let numero = null, consumidoNum = 0;
+            if (j < tokensNorm.length && /^\d+$/.test(tokensNorm[j])) {
+              numero = parseInt(tokensNorm[j]); consumidoNum = 1;
+            } else {
+              const res = parsearNumPT(tokensRaw, j);
+              if (res) { [numero, consumidoNum] = res; }
+            }
+            if (numero !== null) { found = { id: pfxFinal + numero, consumed: nPfx + consumidoNum }; break outer; }
+          }
+        }
+        const mEmbed = lastTok.match(/^([a-z]+)(\d+)$/);
+        if (mEmbed) {
+          const pfxKey = pfxToks.slice(0,-1).join('') + mEmbed[1];
+          const pfxUpper = pfxKey.toUpperCase();
+          const pfxFinal = PREFIXOS_VALIDOS[pfxUpper] ? pfxUpper : (PAIS_CODIGO[pfxKey] || null);
+          if (pfxFinal) { found = { id: pfxFinal + parseInt(mEmbed[2]), consumed: nPfx }; break outer; }
+        }
+      }
+      if (found !== null) {
+        if (validarFigurinaID(found.id)) validos.push(found.id); else invalidos.push(found.id);
+        i += found.consumed; continue;
+      }
+    }
+    i++;
+  }
+  return { validos, invalidos };
+}
+
+function processarFala(fala) {
+  if (/\bvoltar\b/.test(fala))  { cmdVoltar(); return; }
+  if (/\bzerar\b/.test(fala))   { cmdZerar();  return; }
+  if (/\b(extra|extras|especial|especiais)\b/.test(fala)) { cmdExtra(); return; }
+  const { validos, invalidos } = extrairFigurinhas(fala);
+  if (validos.length === 0 && invalidos.length > 0) {
+    playSound('err'); toast(`Código inválido: ${invalidos.join(', ')}`, true); return;
+  }
+  if (validos.length === 0) {
+    if (/\d/.test(fala) || fala.trim().split(/\s+/).length >= 2) {
+      playSound('err');
+      log('cmd', '❓', `Não identificou: "${fala.slice(0,40)}"`);
+    }
+    return;
+  }
+  validos.forEach(adicionarFigurina);
+}
+
+// ══════════════════════════════════════════
+// LÓGICA PRINCIPAL
+// ══════════════════════════════════════════
+function encontrarKitDestino(id) {
+  for (let i = 0; i < kitsSets.length; i++) {
+    if (!kitsSets[i].has(id)) return i;
+  }
+  kits.push([]); kitsSets.push(new Set());
+  return kitsSets.length - 1;
+}
+
+function adicionarFigurina(id) {
+  if (processadas >= limiteTotal) {
+    falar('Lote esgotado.', 3.0);
+    toast(`Lote esgotado — ${limiteTotal} figurinhas processadas!`, true);
+    return;
+  }
+  processadas++;
+
+  if (listaEspeciais.has(id)) {
+    especiais.push(id);
+    historico.push({ tipo: 'especial', id, kitArr: null, kitSet: null });
+    if (historico.length > 200) historico.shift();
+    log('esp', '✦', `${id} → ESPECIAL`);
+    mostrarPopup({
+      tipo:'esp', icone:'✦', titulo:'Figurinha Especial',
+      conteudo:`<div class="popup-fig-num" style="color:var(--roxo)">${id}</div>
+                <div class="popup-destino esp">Estoque Especial</div>`,
+      hint:'Toque em Ok para confirmar',
+      btns:[{label:'✓ Ok, guardei',cls:'pb-roxo'}], tts:'Especial.'
+    });
+    atualizarUI(); return;
+  }
+
+  const destIdx = encontrarKitDestino(id);
+  kits[destIdx].push(id);
+  kitsSets[destIdx].add(id);
+  historico.push({ tipo:'normal', id, kitArr:kits[destIdx], kitSet:kitsSets[destIdx] });
+  if (historico.length > 200) historico.shift();
+
+  if (destIdx === 0) {
+    playSound('ok');
+    log('ok', '✅', `${id} — ${nomePais(id)} → Kit (${kits[0].length}/${cfg.tamanhoKit})`);
+    atualizarUI();
+    if (kits[0].length >= cfg.tamanhoKit) {
+      const kitNum = kitsProntos.length + 1;
+      const kitLabel = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
+      kitsProntos.push({ label: kitLabel, figs: [...kits[0]] });
+      log('kit-done', '🏆', `Kit ${kitLabel} completo!`);
+      kits.shift(); kitsSets.shift();
+      if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      atualizarUI();
+      mostrarPopup({
+        tipo:'kit', icone:'🏆', titulo:`${kitLabel} Completo!`,
+        conteudo:`<div class="popup-destino done">Retire as ${cfg.tamanhoKit} figurinhas<br>e coloque nos kits prontos.</div>`,
+        hint:'Toque para confirmar',
+        btns:[{label:'✓ Kit retirado',cls:'pb-verde'}], tts:`Kit ${kitNum} pronto!`
+      });
+    }
+  } else {
+    const kitFuturoNum = kitsProntos.length + 1 + destIdx;
+    log('rep', '📦', `${id} repetida → Kit ${kitFuturoNum}`);
+    atualizarUI();
+    mostrarPopup({
+      tipo:'rep', icone:'📦', titulo:'Repetida',
+      conteudo:`<div class="popup-fig-num">${id}</div>
+                <div class="popup-destino kit">Kit ${kitFuturoNum}</div>`,
+      hint:'Toque para confirmar',
+      btns:[{label:'✓ Ok, coloquei',cls:'pb-amarelo'}],
+      tts:`Repetida, kit ${kitFuturoNum}.`
+    });
+  }
+  atualizarUI();
+}
+
+function cmdExtra() {
+  limiteTotal++;
+  processadas++;
+  extras++;
+  historico.push({ tipo:'extra', id:'EXTRA', kitArr:null, kitSet:null });
+  if (historico.length > 200) historico.shift();
+  log('ext', '📌', `Extra #${extras} — bolinho`);
+  atualizarUI();
+  mostrarPopup({
+    tipo:'ext', icone:'📌', titulo:`Extra #${extras}`,
+    conteudo:`<div class="popup-destino" style="background:rgba(139,92,246,0.15);border:2px solid var(--roxo);border-radius:12px;color:var(--roxo);font-size:1.3rem;padding:16px 20px;margin-top:8px">BOLINHO DE EXTRAS</div>`,
+    hint:'Toque para confirmar',
+    btns:[{label:'✓ Separei',cls:'pb-roxo'}],
+    tts:'Extra! Separa no bolinho.'
+  });
+}
+
+// ══════════════════════════════════════════
+// POPUP
+// ══════════════════════════════════════════
+function mostrarPopup(dados) {
+  if (popupAtual) { popupFila.push(dados); return; }
+  _exibirPopup(dados);
+}
+function _exibirPopup(dados) {
+  popupAtual = dados;
+  document.getElementById('popup').className = `popup tipo-${dados.tipo}`;
+  document.getElementById('p-icone').textContent  = dados.icone;
+  document.getElementById('p-titulo').textContent = dados.titulo;
+  document.getElementById('p-conteudo').innerHTML = dados.conteudo;
+  document.getElementById('p-hint').textContent   = dados.hint;
+  document.getElementById('p-btns').innerHTML     = dados.btns
+    .map(b => `<button class="popup-btn ${b.cls}" onclick="confirmarPopup()">${b.label}</button>`).join('');
+  document.getElementById('overlay').classList.add('vis');
+  if (dados.tts) falar(dados.tts, 3.0);
+}
+function confirmarPopup() {
+  if (!popupAtual) return;
+  popupAtual = null;
+  document.getElementById('overlay').classList.remove('vis');
+  if (popupFila.length > 0) {
+    setTimeout(() => { if (popupFila.length > 0) _exibirPopup(popupFila.shift()); }, 280);
+  } else if (filaVoz.length > 0) {
+    const pendentes = filaVoz.splice(0);
+    setTimeout(() => pendentes.forEach(adicionarFigurina), 300);
+  }
+}
+
+// ══════════════════════════════════════════
+// COMANDOS
+// ══════════════════════════════════════════
+function cmdVoltar() {
+  if (!historico.length) { toast('Nada para desfazer.'); return; }
+  const entrada = historico.pop();
+  if (entrada.tipo === 'extra') {
+    extras = Math.max(0, extras - 1);
+    processadas = Math.max(0, processadas - 1);
+    limiteTotal = Math.max(cfg.totalPacotes * 7, limiteTotal - 1);
+    log('cmd', '↩️', 'Extra removida');
+    atualizarUI(); toast('Extra removida'); return;
+  }
+  if (entrada.tipo === 'especial') {
+    const idx = especiais.lastIndexOf(entrada.id);
+    if (idx !== -1) especiais.splice(idx, 1);
+    processadas = Math.max(0, processadas - 1);
+    log('cmd', '↩️', `${entrada.id} especial removida`);
+    atualizarUI(); toast(`${entrada.id} removida`); return;
+  }
+  const emFormacao = kits.some(k => k === entrada.kitArr);
+  if (!emFormacao) { toast('Kit já finalizado.', true); return; }
+  const idx = entrada.kitArr.lastIndexOf(entrada.id);
+  if (idx !== -1) {
+    entrada.kitArr.splice(idx, 1);
+    entrada.kitSet.delete(entrada.id);
+    processadas = Math.max(0, processadas - 1);
+    log('cmd', '↩️', `${entrada.id} removida`);
+    atualizarUI(); toast(`${entrada.id} removida`);
+  }
+}
+
+function cmdZerar() {
+  const kitAtual = kits[0];
+  kits[0] = []; kitsSets[0] = new Set();
+  historico = historico.filter(h => h.kitArr !== kitAtual);
+  log('cmd', '↺', 'Kit atual zerado');
+  atualizarUI(); toast('Kit zerado');
+}
+
+// ══════════════════════════════════════════
+// UI
+// ══════════════════════════════════════════
+function atualizarUI() {
+  const pctLote = processadas / limiteTotal;
+  const procEl = document.getElementById('s-proc');
+  procEl.textContent = `${processadas}/${limiteTotal}`;
+  procEl.className = `stat-v ${pctLote >= 1 ? 'c-alerta' : pctLote >= 0.9 ? 'c-amarelo' : 'c-azul'}`;
+  document.getElementById('s-kit-atual').textContent = `${kits[0]?.length || 0}/${cfg.tamanhoKit}`;
+  document.getElementById('s-prontos').textContent   = kitsProntos.length;
+  document.getElementById('s-ext').textContent       = extras;
+  let totalFila = 0;
+  for (let i = 1; i < kits.length; i++) totalFila += kits[i].length;
+  document.getElementById('s-fila').textContent = totalFila;
+}
+
+// ══════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════
+function log(tipo, icone, msg) {
+  const hora = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  logItems.unshift({ tipo, icone, msg, hora });
+  if (logItems.length > 100) logItems.pop();
+  renderLog();
+}
+function renderLog() {
+  const area = document.getElementById('log-recente');
+  const ultimos = logItems.slice(0, 8);
+  if (!ultimos.length) { area.innerHTML = '<div class="lr-item cmd"><span>💡</span><span>Log aparece aqui</span></div>'; return; }
+  area.innerHTML = ultimos.map(i =>
+    `<div class="lr-item ${i.tipo}">
+       <span>${i.icone}</span>
+       <span>${i.msg}</span>
+       <span class="lr-hora">${i.hora}</span>
+     </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// SOM
+// ══════════════════════════════════════════
+let _audioCtx = null;
+function _ctx() {
+  if (!_audioCtx || _audioCtx.state === 'closed')
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
+function playSound(tipo) {
+  try {
+    const ctx = _ctx();
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+    if (tipo === 'ok') {
+      const osc = ctx.createOscillator();
+      osc.connect(gain); osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.linearRampToValueAtTime(1320, now + 0.07);
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now); osc.stop(now + 0.22);
+    } else if (tipo === 'err') {
+      const osc = ctx.createOscillator();
+      osc.connect(gain); osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.linearRampToValueAtTime(130, now + 0.18);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now); osc.stop(now + 0.2);
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════
+// TTS
+// ══════════════════════════════════════════
+setInterval(() => { if (window.speechSynthesis) window.speechSynthesis.resume(); }, 5000);
+function falar(txt, rate = 3.0) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = 'pt-BR'; u.rate = rate;
+    u.onerror = () => {
+      const u2 = new SpeechSynthesisUtterance(txt);
+      u2.lang = 'pt-BR'; u2.rate = rate;
+      setTimeout(() => window.speechSynthesis.speak(u2), 150);
+    };
+    window.speechSynthesis.speak(u);
+  }, 60);
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let _tt;
+function toast(msg, warn = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast vis' + (warn ? ' warn' : '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('vis'), 3500);
+}
+
+// ══════════════════════════════════════════
+// EXPORTAR
+// ══════════════════════════════════════════
+function gerarCSV() {
+  const colunas = [], cabecalhos = [];
+  kitsProntos.forEach(kp => { cabecalhos.push(`${kp.label} (PRONTO)`); colunas.push([...kp.figs]); });
+  kits.forEach((kit, i) => {
+    const kitNum = kitsProntos.length + 1 + i;
+    cabecalhos.push(`L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum} (${i === 0 ? 'KIT ATUAL' : `KIT +${i}`})`);
+    colunas.push([...kit]);
+  });
+  const maxLen = Math.max(...colunas.map(c => c.length), 1);
+  let csv = `Lote;L${cfg.lote}\nOperador;${cfg.operador}\nData;${new Date().toLocaleString('pt-BR')}\nProcessadas;${processadas}/${limiteTotal}\nExtras;${extras}\nKits prontos;${kitsProntos.length}\n\n`;
+  csv += cabecalhos.join(';') + '\n';
+  for (let r = 0; r < maxLen; r++) { csv += colunas.map(c => c[r] !== undefined ? c[r] : '').join(';') + '\n'; }
+  csv += '\n\nLOG\nTipo;Mensagem;Hora\n';
+  [...logItems].reverse().forEach(i => { csv += `${i.tipo};${i.msg.replace(/;/g,'|')};${i.hora}\n`; });
+  return csv;
+}
+
+function gerarEstadoStr() {
+  const linhas = [];
+  kits.forEach((kit, i) => {
+    if (!kit.length) return;
+    linhas.push(`KIT${kitsProntos.length + 1 + i}:${kit.join(',')}`);
+  });
+  return `# Estado Lote L${cfg.lote} — ${new Date().toLocaleString('pt-BR')}\n# Operador: ${cfg.operador}\n\n${linhas.join(' | ') || '# Nenhum kit em formação'}`;
+}
+
+function exportarExcel() {
+  const csv = '﻿' + gerarCSV();
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `FigurinhaOp_L${cfg.lote}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('Exportado!');
+}
+
+// ══════════════════════════════════════════
+// ENCERRAR
+// ══════════════════════════════════════════
+function abrirModalEncerrar() {
+  document.getElementById('modal-enc-info').innerHTML =
+    `Kits prontos: <b>${kitsProntos.length}</b> de <b>${cfg.kitsEsperados}</b> esperados<br>
+     Processadas: <b>${processadas}/${limiteTotal}</b><br>
+     Extras: <b>${extras}</b><br><br>
+     Os arquivos CSV e TXT serão baixados.`;
+  document.getElementById('modal-enc').classList.add('vis');
+}
+function fecharModalEncerrar() {
+  document.getElementById('modal-enc').classList.remove('vis');
+}
+function encerrarLote() {
+  fecharModalEncerrar();
+  const csv  = '﻿' + gerarCSV();
+  const txt  = gerarEstadoStr();
+  const nome = new Date().toISOString().slice(0,10);
+  [
+    [csv, `FigurinhaOp_L${cfg.lote}_${nome}.csv`, 'text/csv;charset=utf-8;'],
+    [txt, `Estado_L${cfg.lote}_proximo_lote.txt`, 'text/plain']
+  ].forEach(([conteudo, arquivo, tipo]) => {
+    const blob = new Blob([conteudo], {type:tipo});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = arquivo; a.click();
+  });
+  setTimeout(() => location.reload(), 1000);
+}
+</script>
+</body>
+</html>
