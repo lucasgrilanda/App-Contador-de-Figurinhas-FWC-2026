@@ -931,7 +931,7 @@ const CENTENAS = {
 };
 const DEZENAS = {'vinte':20,'trinta':30,'quarenta':40,'cinquenta':50,'sessenta':60,'setenta':70,'oitenta':80,'noventa':90};
 const UNIDADES = {
-  'zero':0,'um':1,'uma':1,'dois':2,'duas':2,
+  'zero':0,'zeros':0,'um':1,'uma':1,'dois':2,'duas':2,
   'tres':3,'três':3,
   'quatro':4,'cinco':5,'seis':6,'sete':7,'oito':8,'nove':9,'dez':10,
   'onze':11,'doze':12,'treze':13,'quatorze':14,'catorze':14,
@@ -970,6 +970,10 @@ function parsearNumPT(tokens, start) {
 
 // Extrai figurinhas de uma fala. Retorna { validos: string[], invalidos: string[] }
 function extrairFigurinhas(fala) {
+  // Atalho: "zero", "zero zero", "0", "00" sozinhos = FWC0 (figurinha 00 da Copa)
+  const _falaNorm = norm(fala).trim();
+  if (/^(zero\s*zero|zero|0|00)$/.test(_falaNorm)) return { validos: ['FWC0'], invalidos: [] };
+
   // Tokens normalizados (sem acentos) para match de país
   // Tokens raw (com acentos, lowercase) para parsearNumPT
   const tokensNorm = norm(fala).replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(t => t);
@@ -1233,6 +1237,9 @@ function tecladoProcessar() {
   if (!val) return;
 
   if (val === 'EXTRA' || val === 'EXT') { cmdExtra(); input.focus(); return; }
+
+  // Atalho: "00" ou "0" = figurinha FWC0 (figurinha 00 da Copa)
+  if (val === '00' || val === '0') { adicionarFigurina('FWC0'); input.focus(); return; }
 
   if (!validarFigurinaID(val)) {
     falar('Inválido.', 3.0);
