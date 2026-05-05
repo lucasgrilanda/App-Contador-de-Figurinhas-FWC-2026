@@ -18,14 +18,10 @@
 html{background:var(--bg);}
 body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);color:var(--texto);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;}
 
-/* ── SETUP ─────────────────────────────────────── */
+/* ── SETUP ─────────────────────────────── */
 #tela-setup{
-  display:block;
-  min-height:100vh;
-  min-height:-webkit-fill-available;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  background:var(--bg);
+  display:block;min-height:100vh;min-height:-webkit-fill-available;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);
   padding:max(env(safe-area-inset-top),20px) 20px max(env(safe-area-inset-bottom),20px);
 }
 .setup-logo{font-size:1.6rem;font-weight:900;color:var(--amarelo-l);margin-top:16px;margin-bottom:2px;}
@@ -41,16 +37,14 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
 .campo textarea{resize:none;min-height:80px;font-size:0.85rem;}
 .calc-row{
   background:var(--bg3);border:1.5px solid var(--borda);border-radius:10px;
-  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:14px;
+  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
 }
 .calc-label{font-size:0.68rem;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;}
 .calc-val{font-size:1.4rem;font-weight:900;color:var(--amarelo-l);}
 .btn-iniciar{
   width:100%;padding:18px;background:var(--amarelo);color:#000;border:none;
   border-radius:14px;font-size:1.1rem;font-weight:900;letter-spacing:1px;
-  cursor:pointer;margin-top:8px;margin-bottom:20px;
-  -webkit-appearance:none;
+  cursor:pointer;margin-top:8px;margin-bottom:20px;-webkit-appearance:none;
 }
 .btn-iniciar:active{background:var(--amarelo-l);}
 .guia-box{background:var(--bg2);border:1.5px solid var(--borda);border-radius:12px;padding:14px 16px;margin-bottom:24px;}
@@ -59,90 +53,104 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
 .guia-box p b{color:var(--texto);}
 .code-line{font-family:'Courier New',monospace;font-size:0.75rem;color:var(--cyan);background:var(--bg3);border-radius:6px;padding:6px 10px;display:block;margin:4px 0;word-break:break-all;}
 
-/* ── APP ────────────────────────────────────────── */
+/* ── APP ────────────────────────────────── */
 #tela-app{
-  display:none;
-  position:fixed;
+  display:none;position:fixed;
   top:0;left:0;right:0;bottom:0;
   flex-direction:column;overflow:hidden;
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 
-/* STATS TOP */
-.stats-top{
+/* TOPBAR */
+.topbar-m{
   background:var(--bg2);border-bottom:1px solid var(--borda);
-  display:flex;align-items:center;gap:0;flex-shrink:0;
-  padding:0;
+  display:flex;align-items:center;padding:10px 14px;gap:10px;flex-shrink:0;
 }
-.stat-blk{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  padding:10px 4px;border-right:1px solid var(--borda);
+.topbar-logo{font-size:1rem;font-weight:900;color:var(--amarelo-l);flex-shrink:0;}
+.topbar-stats{flex:1;display:flex;gap:10px;align-items:center;justify-content:center;}
+.ts-item{display:flex;flex-direction:column;align-items:center;}
+.ts-label{font-size:0.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--texto2);}
+.ts-val{font-size:1rem;font-weight:900;line-height:1.1;}
+.ts-sep{width:1px;height:28px;background:var(--borda);}
+.c-azul{color:var(--azul);}.c-verde{color:var(--verde);}.c-amarelo{color:var(--amarelo-l);}
+.c-roxo{color:var(--roxo);}.c-cinza{color:var(--texto2);}.c-alerta{color:var(--vermelho);}
+.mic-btn-top{
+  width:48px;height:48px;border-radius:50%;border:2px solid var(--borda);
+  background:var(--bg3);display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;cursor:pointer;flex-shrink:0;-webkit-appearance:none;transition:all 0.2s;
 }
-.stat-blk:last-child{border-right:none;}
-.stat-l{font-size:0.55rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--texto2);margin-bottom:2px;}
-.stat-v{font-size:1.2rem;font-weight:900;line-height:1;}
-.c-azul{color:var(--azul);}
-.c-verde{color:var(--verde);}
-.c-amarelo{color:var(--amarelo-l);}
-.c-roxo{color:var(--roxo);}
-.c-cinza{color:var(--texto2);}
-.c-alerta{color:var(--vermelho);}
+.mic-btn-top.ouvindo{border-color:var(--vermelho);background:rgba(248,81,73,0.15);animation:pulse 1.4s ease-in-out infinite;}
+.mic-btn-top.pausado{border-color:var(--amarelo-l);background:rgba(210,153,34,0.1);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,0.4)}50%{box-shadow:0 0 0 14px rgba(248,81,73,0)}}
+
+/* KIT ATUAL */
+.kit-section{
+  background:var(--bg2);border-bottom:1px solid var(--borda);
+  padding:10px 14px;flex-shrink:0;
+}
+.kit-header-m{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.kit-titulo-m{font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--texto2);}
+.kit-prog-m{font-size:0.75rem;font-weight:900;color:var(--verde);}
+.kit-barra-m{height:4px;background:var(--bg3);border-radius:2px;margin-bottom:8px;overflow:hidden;}
+.kit-barra-fill-m{height:100%;background:linear-gradient(90deg,var(--verde-d),var(--verde));border-radius:2px;transition:width 0.3s ease;}
+.kit-chips{display:flex;flex-wrap:wrap;gap:4px;max-height:68px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.kit-chips::-webkit-scrollbar{display:none;}
+.chip-fig{
+  font-family:'Courier New',monospace;font-size:0.68rem;padding:2px 7px;
+  border-radius:5px;background:var(--bg3);border:1px solid var(--borda);color:var(--texto);
+}
+.chip-fig.novo{border-color:var(--verde-d);color:var(--verde);background:rgba(63,185,80,0.08);animation:popIn 0.18s cubic-bezier(0.34,1.56,0.64,1);}
+.chip-fig.rep{border-color:var(--amarelo);color:var(--amarelo-l);background:rgba(210,153,34,0.08);}
+@keyframes popIn{from{transform:scale(0.6);opacity:0}to{transform:scale(1);opacity:1}}
+.kit-vazio{font-size:0.7rem;color:var(--borda);font-style:italic;}
+
+/* PRONTOS */
+.prontos-strip{
+  background:var(--bg3);border-bottom:1px solid var(--borda);
+  padding:6px 14px;display:flex;gap:8px;align-items:center;
+  overflow-x:auto;flex-shrink:0;
+}
+.prontos-strip::-webkit-scrollbar{display:none;}
+.pstrip-label{font-size:0.6rem;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;flex-shrink:0;}
+.pstrip-item{
+  font-size:0.65rem;font-family:'Courier New',monospace;
+  padding:2px 8px;border-radius:4px;
+  background:rgba(63,185,80,0.08);border:1px solid rgba(63,185,80,0.25);
+  color:var(--verde);white-space:nowrap;flex-shrink:0;
+}
+.pstrip-vazio{font-size:0.65rem;color:var(--borda);font-style:italic;}
 
 /* TRANSCRICAO */
 .trans-area{
   background:var(--bg3);border-bottom:1px solid var(--borda);
-  padding:10px 16px;min-height:54px;display:flex;align-items:center;
-  font-size:0.85rem;color:var(--texto2);flex-shrink:0;
-  font-style:italic;line-height:1.4;
+  padding:8px 14px;font-size:0.82rem;color:var(--texto2);
+  flex-shrink:0;line-height:1.4;min-height:38px;
+  display:flex;align-items:center;font-style:italic;
 }
 .trans-area.ativa{color:var(--amarelo-l);font-style:normal;}
 
-/* MIC CENTRAL */
-.mic-central{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:14px;padding:16px;overflow:hidden;
+/* LOG */
+.log-area-m{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:4px 0;
 }
-.mic-btn-grande{
-  width:130px;height:130px;border-radius:50%;
-  border:3px solid var(--borda);background:var(--bg2);
-  display:flex;align-items:center;justify-content:center;
-  font-size:3.2rem;cursor:pointer;outline:none;
-  transition:all 0.2s;flex-shrink:0;
-  -webkit-appearance:none;
-}
-.mic-btn-grande.ouvindo{
-  border-color:var(--vermelho);background:rgba(248,81,73,0.12);
-  animation:pulse 1.4s ease-in-out infinite;
-}
-.mic-btn-grande.pausado{border-color:var(--amarelo-l);background:rgba(210,153,34,0.1);}
-@keyframes pulse{
-  0%,100%{box-shadow:0 0 0 0 rgba(248,81,73,0.35)}
-  50%{box-shadow:0 0 0 22px rgba(248,81,73,0)}
-}
-.mic-status{font-size:0.8rem;color:var(--texto2);text-align:center;font-weight:500;}
-.mic-status.ouvindo{color:var(--vermelho);}
-.mic-status.pausado{color:var(--amarelo-l);}
-
-/* LOG RECENTE */
-.log-recente{
-  flex-shrink:0;max-height:160px;overflow-y:auto;
-  border-top:1px solid var(--borda);
-  padding:6px 0;
-}
-.log-recente::-webkit-scrollbar{display:none;}
+.log-area-m::-webkit-scrollbar{width:3px;}
+.log-area-m::-webkit-scrollbar-thumb{background:var(--borda);}
 .lr-item{
-  font-size:0.7rem;padding:5px 14px;display:flex;gap:6px;align-items:flex-start;
-  border-bottom:1px solid rgba(48,54,61,0.4);color:var(--texto2);line-height:1.4;
+  font-size:0.72rem;padding:6px 14px;
+  border-bottom:1px solid rgba(48,54,61,0.5);
+  color:var(--texto2);line-height:1.4;
+  display:flex;gap:8px;align-items:flex-start;
 }
 .lr-item:last-child{border-bottom:none;}
+.lr-hora{font-size:0.58rem;color:var(--borda);flex-shrink:0;margin-left:auto;padding-top:1px;}
 .lr-item.ok{color:var(--verde);}
 .lr-item.rep{color:var(--amarelo-l);}
 .lr-item.esp{color:var(--roxo);}
 .lr-item.ext{color:var(--texto2);}
 .lr-item.cmd{color:var(--azul);}
-.lr-item.kit-done{color:var(--cyan);}
-.lr-hora{font-size:0.58rem;color:var(--borda);flex-shrink:0;margin-top:1px;}
+.lr-item.kit-done{color:var(--cyan);font-weight:700;}
 
 /* AÇÕES BOTTOM */
 .acoes-bottom{
@@ -150,22 +158,22 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
   display:flex;gap:0;flex-shrink:0;
 }
 .btn-acao{
-  flex:1;padding:16px 8px;background:transparent;border:none;border-right:1px solid var(--borda);
-  color:var(--texto2);font-size:0.8rem;font-weight:600;letter-spacing:0.5px;
-  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex:1;padding:13px 6px;background:transparent;border:none;border-right:1px solid var(--borda);
+  color:var(--texto2);font-size:0.72rem;font-weight:600;
+  cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;
   -webkit-appearance:none;transition:background 0.15s;
 }
 .btn-acao:last-child{border-right:none;}
-.btn-acao:active{background:rgba(255,255,255,0.05);}
-.btn-acao .ico{font-size:1.3rem;line-height:1;}
+.btn-acao:active{background:rgba(255,255,255,0.06);}
+.btn-acao .ico{font-size:1.1rem;line-height:1;}
 .btn-acao.danger{color:var(--vermelho);}
 .btn-acao.primary{color:var(--verde);}
 .btn-acao.extra-btn{color:var(--roxo);}
 
-/* POPUP OVERLAY */
+/* POPUP */
 .overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.85);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   display:flex;align-items:center;justify-content:center;z-index:100;
   opacity:0;pointer-events:none;transition:opacity 0.15s;padding:20px;
 }
@@ -184,58 +192,42 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
 .popup.tipo-kit::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--verde);}
 .popup.tipo-ext{border:2px solid var(--roxo);}
 .popup.tipo-ext::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--roxo);}
-.popup-icone{font-size:2.2rem;margin-bottom:6px;}
+.popup-icone{font-size:2rem;margin-bottom:6px;}
 .popup-titulo{font-size:1.2rem;font-weight:900;margin-bottom:10px;}
-.popup-fig-num{font-size:3.5rem;font-weight:900;line-height:1;color:var(--amarelo-l);margin:6px 0;letter-spacing:2px;}
-.popup-destino{font-size:1.8rem;font-weight:900;line-height:1.2;margin:10px 0 14px;}
+.popup-fig-num{font-size:3.2rem;font-weight:900;line-height:1;color:var(--amarelo-l);margin:6px 0;letter-spacing:2px;}
+.popup-destino{font-size:1.7rem;font-weight:900;line-height:1.2;margin:10px 0 14px;}
 .popup-destino.kit{color:var(--azul);}
 .popup-destino.esp{color:var(--roxo);}
-.popup-destino.done{color:var(--verde);font-size:1.3rem;line-height:1.4;}
+.popup-destino.done{color:var(--verde);font-size:1.2rem;line-height:1.4;}
 .popup-hint{font-size:0.72rem;color:var(--texto2);margin-bottom:14px;}
 .popup-btn{
   width:100%;padding:16px;border-radius:12px;border:none;cursor:pointer;
-  font-size:1rem;font-weight:700;transition:all 0.15s;
-  -webkit-appearance:none;
+  font-size:1rem;font-weight:700;-webkit-appearance:none;
 }
 .pb-amarelo{background:var(--amarelo);color:#000;}
-.pb-amarelo:active{background:var(--amarelo-l);}
 .pb-roxo{background:var(--roxo);color:#fff;}
-.pb-roxo:active{opacity:0.85;}
 .pb-verde{background:var(--verde-d);color:#fff;}
-.pb-verde:active{background:var(--verde);}
+
+/* MODAL ENCERRAR */
+.modal-enc{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);display:none;align-items:flex-end;justify-content:center;z-index:150;padding-bottom:env(safe-area-inset-bottom,0px);}
+.modal-enc.vis{display:flex;}
+.modal-enc-box{background:var(--bg2);border-radius:18px 18px 0 0;padding:24px 20px 28px;width:100%;max-width:480px;}
+.modal-enc-titulo{font-size:1.1rem;font-weight:900;margin-bottom:6px;color:var(--vermelho);}
+.modal-enc-info{font-size:0.85rem;color:var(--texto2);margin-bottom:18px;line-height:1.6;}
+.modal-enc-btns{display:flex;flex-direction:column;gap:10px;}
+.btn-enc-confirmar{padding:16px;background:var(--vermelho);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;-webkit-appearance:none;}
+.btn-enc-cancelar{padding:16px;background:var(--bg3);color:var(--texto2);border:1.5px solid var(--borda);border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;-webkit-appearance:none;}
 
 /* TOAST */
 .toast{
-  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);left:50%;transform:translateX(-50%) translateY(8px);
+  position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);
+  left:50%;transform:translateX(-50%) translateY(8px);
   background:var(--bg2);border:1.5px solid var(--verde-d);border-radius:12px;
   padding:10px 20px;font-size:0.82rem;color:var(--verde);z-index:200;
   opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;max-width:90vw;
 }
 .toast.vis{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.warn{border-color:var(--vermelho);color:var(--vermelho);}
-
-/* MODAL ENCERRAR */
-.modal-enc{
-  position:fixed;inset:0;background:rgba(0,0,0,0.9);
-  display:none;align-items:flex-end;justify-content:center;z-index:150;
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-.modal-enc.vis{display:flex;}
-.modal-enc-box{
-  background:var(--bg2);border-radius:18px 18px 0 0;padding:24px 20px 28px;
-  width:100%;max-width:480px;
-}
-.modal-enc-titulo{font-size:1.1rem;font-weight:900;margin-bottom:6px;color:var(--vermelho);}
-.modal-enc-info{font-size:0.85rem;color:var(--texto2);margin-bottom:18px;line-height:1.6;}
-.modal-enc-btns{display:flex;flex-direction:column;gap:10px;}
-.btn-enc-confirmar{
-  padding:16px;background:var(--vermelho);color:#fff;border:none;border-radius:12px;
-  font-size:1rem;font-weight:700;cursor:pointer;-webkit-appearance:none;
-}
-.btn-enc-cancelar{
-  padding:16px;background:var(--bg3);color:var(--texto2);border:1.5px solid var(--borda);border-radius:12px;
-  font-size:1rem;font-weight:600;cursor:pointer;-webkit-appearance:none;
-}
 </style>
 </head>
 <body>
@@ -292,42 +284,55 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
 <!-- ══ APP ════════════════════════════════════════════ -->
 <div id="tela-app">
 
-  <!-- STATS TOP -->
-  <div class="stats-top">
-    <div class="stat-blk">
-      <div class="stat-l">Processadas</div>
-      <div class="stat-v c-azul" id="s-proc">0</div>
+  <!-- TOPBAR com mic -->
+  <div class="topbar-m">
+    <div class="topbar-logo">⚽ Copa</div>
+    <div class="topbar-stats">
+      <div class="ts-item">
+        <span class="ts-label">Total</span>
+        <span class="ts-val c-azul" id="s-proc">0</span>
+      </div>
+      <div class="ts-sep"></div>
+      <div class="ts-item">
+        <span class="ts-label">Prontos</span>
+        <span class="ts-val c-verde" id="s-prontos">0</span>
+      </div>
+      <div class="ts-sep"></div>
+      <div class="ts-item">
+        <span class="ts-label">Fila</span>
+        <span class="ts-val c-amarelo" id="s-fila">0</span>
+      </div>
+      <div class="ts-sep"></div>
+      <div class="ts-item">
+        <span class="ts-label">Extras</span>
+        <span class="ts-val c-cinza" id="s-ext">0</span>
+      </div>
     </div>
-    <div class="stat-blk">
-      <div class="stat-l">Kit Atual</div>
-      <div class="stat-v c-verde" id="s-kit-atual">0/50</div>
+    <button class="mic-btn-top" id="mic-btn" onclick="toggleMic()">🎙️</button>
+  </div>
+
+  <!-- KIT ATUAL -->
+  <div class="kit-section">
+    <div class="kit-header-m">
+      <span class="kit-titulo-m">Kit Atual</span>
+      <span class="kit-prog-m" id="s-kit-atual">0/50</span>
     </div>
-    <div class="stat-blk">
-      <div class="stat-l">Prontos</div>
-      <div class="stat-v c-verde" id="s-prontos">0</div>
-    </div>
-    <div class="stat-blk">
-      <div class="stat-l">Fila</div>
-      <div class="stat-v c-amarelo" id="s-fila">0</div>
-    </div>
-    <div class="stat-blk">
-      <div class="stat-l">Extras</div>
-      <div class="stat-v c-cinza" id="s-ext">0</div>
-    </div>
+    <div class="kit-barra-m"><div class="kit-barra-fill-m" id="kit-barra-fill" style="width:0%"></div></div>
+    <div class="kit-chips" id="kit-chips"><span class="kit-vazio">— aguardando figurinhas —</span></div>
+  </div>
+
+  <!-- KITS PRONTOS -->
+  <div class="prontos-strip" id="prontos-strip">
+    <span class="pstrip-label">Prontos:</span>
+    <span class="pstrip-vazio" id="prontos-lista">nenhum ainda</span>
   </div>
 
   <!-- TRANSCRICAO -->
-  <div class="trans-area" id="transcricao">Toque no microfone para começar...</div>
+  <div class="trans-area" id="transcricao">Toque no 🎙️ para começar...</div>
 
-  <!-- MIC CENTRAL -->
-  <div class="mic-central">
-    <button class="mic-btn-grande" id="mic-btn" onclick="toggleMic()">🎙️</button>
-    <div class="mic-status" id="mic-status">Toque para ativar</div>
-  </div>
-
-  <!-- LOG RECENTE -->
-  <div class="log-recente" id="log-recente">
-    <div class="lr-item cmd"><span>💡</span><span>Log aparece aqui</span></div>
+  <!-- LOG COMPLETO -->
+  <div class="log-area-m" id="log-recente">
+    <div class="lr-item cmd"><span>💡</span><span>O log de eventos aparece aqui</span></div>
   </div>
 
   <!-- AÇÕES BOTTOM -->
@@ -337,6 +342,9 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
     </button>
     <button class="btn-acao extra-btn" onclick="cmdExtra()">
       <span class="ico">📌</span><span>Extra</span>
+    </button>
+    <button class="btn-acao" onclick="cmdZerar()">
+      <span class="ico">↺</span><span>Zerar Kit</span>
     </button>
     <button class="btn-acao primary" onclick="exportarExcel()">
       <span class="ico">↓</span><span>Exportar</span>
@@ -691,10 +699,10 @@ function toggleMic() {
   micAtivo = !micAtivo;
   const btn = document.getElementById('mic-btn');
   if (micAtivo) {
-    btn.className = 'mic-btn-grande ouvindo'; btn.textContent = '🔴';
+    btn.className = 'mic-btn-top ouvindo'; btn.textContent = '🔴';
     if (!micRodando) try { reconhecimento.start(); } catch(e) {}
   } else {
-    btn.className = 'mic-btn-grande pausado'; btn.textContent = '▶️';
+    btn.className = 'mic-btn-top pausado'; btn.textContent = '▶️';
     try { reconhecimento.stop(); } catch(e) {}
     micRodando = false;
     const el = document.getElementById('transcricao');
@@ -704,9 +712,14 @@ function toggleMic() {
 }
 
 function atualizarMicStatus() {
-  const el = document.getElementById('mic-status');
-  if (micAtivo) { el.textContent = '🎙️ Ouvindo...'; el.className = 'mic-status ouvindo'; }
-  else          { el.textContent = 'Toque para ativar'; el.className = 'mic-status pausado'; }
+  const btn = document.getElementById('mic-btn');
+  if (micAtivo) {
+    btn.className = 'mic-btn-top ouvindo';
+    btn.textContent = '🔴';
+  } else {
+    btn.className = 'mic-btn-top pausado';
+    btn.textContent = '▶️';
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1020,13 +1033,38 @@ function atualizarUI() {
   const pctLote = processadas / limiteTotal;
   const procEl = document.getElementById('s-proc');
   procEl.textContent = `${processadas}/${limiteTotal}`;
-  procEl.className = `stat-v ${pctLote >= 1 ? 'c-alerta' : pctLote >= 0.9 ? 'c-amarelo' : 'c-azul'}`;
-  document.getElementById('s-kit-atual').textContent = `${kits[0]?.length || 0}/${cfg.tamanhoKit}`;
-  document.getElementById('s-prontos').textContent   = kitsProntos.length;
-  document.getElementById('s-ext').textContent       = extras;
+  procEl.className = `ts-val ${pctLote >= 1 ? 'c-alerta' : pctLote >= 0.9 ? 'c-amarelo' : 'c-azul'}`;
+  document.getElementById('s-prontos').textContent = kitsProntos.length;
+  document.getElementById('s-ext').textContent = extras;
   let totalFila = 0;
   for (let i = 1; i < kits.length; i++) totalFila += kits[i].length;
   document.getElementById('s-fila').textContent = totalFila;
+
+  // Kit atual
+  const kit = kits[0] || [];
+  const pct = Math.min(100, (kit.length / cfg.tamanhoKit) * 100);
+  document.getElementById('s-kit-atual').textContent = `${kit.length}/${cfg.tamanhoKit}`;
+  document.getElementById('kit-barra-fill').style.width = pct + '%';
+  const chipsEl = document.getElementById('kit-chips');
+  if (kit.length === 0) {
+    chipsEl.innerHTML = '<span class="kit-vazio">— aguardando figurinhas —</span>';
+  } else {
+    chipsEl.innerHTML = kit.map((id, i) =>
+      `<span class="chip-fig${i === kit.length - 1 ? ' novo' : ''}">${id}</span>`
+    ).join('');
+    // Scroll para o último chip
+    chipsEl.scrollTop = chipsEl.scrollHeight;
+  }
+
+  // Kits prontos
+  const prontosList = document.getElementById('prontos-lista');
+  const strip = document.getElementById('prontos-strip');
+  if (kitsProntos.length === 0) {
+    strip.innerHTML = '<span class="pstrip-label">Prontos:</span><span class="pstrip-vazio">nenhum ainda</span>';
+  } else {
+    strip.innerHTML = '<span class="pstrip-label">Prontos:</span>' +
+      kitsProntos.map(k => `<span class="pstrip-item">✓ ${k.label}</span>`).join('');
+  }
 }
 
 // ══════════════════════════════════════════
@@ -1040,14 +1078,19 @@ function log(tipo, icone, msg) {
 }
 function renderLog() {
   const area = document.getElementById('log-recente');
-  const ultimos = logItems.slice(0, 8);
-  if (!ultimos.length) { area.innerHTML = '<div class="lr-item cmd"><span>💡</span><span>Log aparece aqui</span></div>'; return; }
-  area.innerHTML = ultimos.map(i =>
+  if (!logItems.length) {
+    area.innerHTML = '<div class="lr-item cmd"><span>💡</span><span>O log de eventos aparece aqui</span></div>';
+    return;
+  }
+  area.innerHTML = logItems.map(i =>
     `<div class="lr-item ${i.tipo}">
        <span>${i.icone}</span>
-       <span>${i.msg}</span>
+       <span style="flex:1">${i.msg}</span>
        <span class="lr-hora">${i.hora}</span>
-     </div>`).join('');
+     </div>`
+  ).join('');
+  // Mantém no topo (eventos mais recentes primeiro)
+  area.scrollTop = 0;
 }
 
 // ══════════════════════════════════════════
@@ -1091,18 +1134,7 @@ function playSound(tipo) {
 // ══════════════════════════════════════════
 setInterval(() => { if (window.speechSynthesis) window.speechSynthesis.resume(); }, 5000);
 function falar(txt, rate = 3.0) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  setTimeout(() => {
-    const u = new SpeechSynthesisUtterance(txt);
-    u.lang = 'pt-BR'; u.rate = rate;
-    u.onerror = () => {
-      const u2 = new SpeechSynthesisUtterance(txt);
-      u2.lang = 'pt-BR'; u2.rate = rate;
-      setTimeout(() => window.speechSynthesis.speak(u2), 150);
-    };
-    window.speechSynthesis.speak(u);
-  }, 60);
+  // TTS desativado na versão mobile — reduz latência no iOS Safari
 }
 
 // ══════════════════════════════════════════
