@@ -114,6 +114,8 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
 .fig-chip{font-family:'JetBrains Mono',monospace;font-size:0.68rem;padding:2px 6px;border-radius:4px;background:var(--bg3);border:1px solid var(--borda);color:var(--texto);}
 .fig-chip.novo{border-color:var(--verde-d);color:var(--verde);background:rgba(63,185,80,0.07);animation:popIn 0.18s cubic-bezier(0.34,1.56,0.64,1);}
 .fig-chip.hist{border-color:var(--borda);color:var(--texto2);background:transparent;}
+.chip-del-btn{background:none;border:none;color:var(--vermelho);cursor:pointer;font-size:0.6rem;padding:0 0 0 3px;opacity:0.4;vertical-align:middle;line-height:1;}
+.chip-del-btn:hover{opacity:1;}
 @keyframes popIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}
 .especiais-card{background:var(--bg2);border:1px solid rgba(137,87,229,0.35);border-radius:10px;overflow:hidden;}
 .especiais-header{padding:9px 14px;border-bottom:1px solid rgba(137,87,229,0.2);display:flex;align-items:center;justify-content:space-between;background:rgba(137,87,229,0.05);}
@@ -351,7 +353,7 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
 // CONSTANTES — FIGURINHAS COPA 2026
 // ══════════════════════════════════════════
 const PREFIXOS_VALIDOS = {
-  FWC:{min:0,max:19},
+  FWC:{min:1,max:19},
   ALG:{min:1,max:20},ARG:{min:1,max:20},AUS:{min:1,max:20},AUT:{min:1,max:20},
   BEL:{min:1,max:20},BIH:{min:1,max:20},BRA:{min:1,max:20},CAN:{min:1,max:20},
   CC:{min:1,max:14},CIV:{min:1,max:20},COD:{min:1,max:20},COL:{min:1,max:20},
@@ -633,6 +635,27 @@ const PAIS_CODIGO = {
   'ne':'NED','no':'NOR','nz':'NZL','po':'POR','qa':'QAT',
   'rs':'RSA','sc':'SCO','se':'SEN','su':'SUI','sw':'SWE',
   'ur':'URU','us':'USA','uz':'UZB',
+  // ── Posições alternativas (1+3 e 2+3) — todas sem ambiguidade ──────────
+  'ce':'CZE','ze':'CZE',               // CZE: pos 1+3, 2+3
+  'ro':'CRO',                          // CRO: pos 2+3
+  'iv':'CIV',                          // CIV: pos 2+3
+  'si':'SUI','ui':'SUI',               // SUI: pos 1+3, 2+3
+  'ru':'URU',                          // URU: pos 2+3
+  'tn':'TUN','un':'TUN',               // TUN: pos 1+3, 2+3
+  'tr':'TUR',                          // TUR: pos 1+3
+  'ng':'ENG',                          // ENG: pos 2+3
+  'sp':'ESP',                          // ESP: pos 2+3
+  'nd':'NED',                          // NED: pos 1+3
+  'mx':'MEX',                          // MEX: pos 1+3
+  'so':'SCO',                          // SCO: pos 1+3
+  'sn':'SEN',                          // SEN: pos 1+3
+  'cl':'COL',                          // COL: pos 1+3
+  'nl':'NZL',                          // NZL: pos 1+3
+  'ka':'KSA',                          // KSA: pos 1+3
+  'ua':'USA',                          // USA: pos 1+3
+  'ba':'BRA',                          // BRA: pos 1+3
+  // ── Chrome: confusão V→Z ────────────────────────────────────────────────
+  'ciz':'CIV',                         // Chrome ouve "civ" como "ciz"
 };
 
 // Mapa prefixo → nome do país (para exibir no log)
@@ -652,6 +675,7 @@ const PREFIXO_NOME = {
   'URU':'Uruguai','USA':'Estados Unidos','UZB':'Uzbequistão',
 };
 function nomePais(id) {
+  if (id === '00') return 'Copa do Mundo';
   const m = id.match(/^([A-Z]+)/);
   return m ? (PREFIXO_NOME[m[1]] || m[1]) : id;
 }
@@ -661,6 +685,7 @@ function norm(s) {
 }
 
 function validarFigurinaID(id) {
+  if (id === '00') return true; // figurinha 00 = capa do álbum
   const m = id.match(/^([A-Z]+)(\d+)$/);
   if (!m) return false;
   const regra = PREFIXOS_VALIDOS[m[1]];
@@ -972,7 +997,7 @@ function parsearNumPT(tokens, start) {
 function extrairFigurinhas(fala) {
   // Atalho: "zero", "zero zero", "0", "00" sozinhos = FWC0 (figurinha 00 da Copa)
   const _falaNorm = norm(fala).trim();
-  if (/^(zero\s*zero|zero|0|00)$/.test(_falaNorm)) return { validos: ['FWC0'], invalidos: [] };
+  if (/^(zero\s*zero|zero|0|00)$/.test(_falaNorm)) return { validos: ['00'], invalidos: [] };
 
   // Tokens normalizados (sem acentos) para match de país
   // Tokens raw (com acentos, lowercase) para parsearNumPT
@@ -1007,6 +1032,18 @@ function extrairFigurinhas(fala) {
         const mEmb = tokensNorm[j].match(/^[a-z]*(\d+)$/);
         if (mEmb) { numero = parseInt(mEmb[1]); consumidoNum = 1; }
         else { const res = parsearNumPT(tokensRaw, j); if (res) { [numero, consumidoNum] = res; } }
+      }
+
+      // Letra solitária entre prefixo e número = soletração incompleta (ex: "rs a 17"→RSA17, "cz e 20"→CZE20)
+      if (numero === null && j < tokensNorm.length && /^[a-z]$/.test(tokensNorm[j]) && j + 1 < tokensNorm.length) {
+        const j2 = j + 1;
+        if (/^\d+$/.test(tokensNorm[j2])) {
+          numero = parseInt(tokensNorm[j2]); consumidoNum = 2;
+        } else {
+          const mEmb2 = tokensNorm[j2].match(/^[a-z]*(\d+)$/);
+          if (mEmb2) { numero = parseInt(mEmb2[1]); consumidoNum = 2; }
+          else { const res2 = parsearNumPT(tokensRaw, j2); if (res2) { numero = res2[0]; consumidoNum = 1 + res2[1]; } }
+        }
       }
 
       if (numero !== null) {
@@ -1127,6 +1164,16 @@ function encontrarKitDestino(id) {
   return kitsSets.length - 1;
 }
 
+function removerDoKit(kitIdx, figIdx) {
+  if (!kits[kitIdx] || figIdx >= kits[kitIdx].length) return;
+  const id = kits[kitIdx][figIdx];
+  kits[kitIdx].splice(figIdx, 1);
+  kitsSets[kitIdx] = new Set(kits[kitIdx]);
+  processadas = Math.max(0, processadas - 1);
+  log('del', '✕', `${id} removida`);
+  atualizarUI();
+}
+
 function adicionarFigurina(id) {
   // limiteTotal é variável de estado global (cresce +1 a cada extra)
   if (processadas >= limiteTotal) {
@@ -1238,8 +1285,8 @@ function tecladoProcessar() {
 
   if (val === 'EXTRA' || val === 'EXT') { cmdExtra(); input.focus(); return; }
 
-  // Atalho: "00" ou "0" = figurinha FWC0 (figurinha 00 da Copa)
-  if (val === '00' || val === '0') { adicionarFigurina('FWC0'); input.focus(); return; }
+  // Atalho: "00" ou "0" = figurinha 00 da Copa (capa do álbum)
+  if (val === '00' || val === '0') { adicionarFigurina('00'); input.focus(); return; }
 
   if (!validarFigurinaID(val)) {
     falar('Inválido.', 3.0);
@@ -1396,7 +1443,7 @@ function atualizarUI() {
       <div class="kit-figs">
         ${kit.length === 0
           ? '<span style="font-family:JetBrains Mono,monospace;font-size:0.65rem;color:var(--borda)">— aguardando —</span>'
-          : kit.map((id, i) => `<span class="fig-chip${isAtivo && i === lastIdx ? ' novo' : ''}">${id}</span>`).join('')}
+          : kit.map((id, i) => `<span class="fig-chip${isAtivo && i === lastIdx ? ' novo' : ''}">${id}<button class="chip-del-btn" onclick="removerDoKit(${idx},${i})" title="Remover">✕</button></span>`).join('')}
       </div>`;
     wrap.appendChild(card);
   });
