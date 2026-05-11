@@ -700,6 +700,38 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('cfg-especiais').addEventListener('input', () => {
     localStorage.setItem('figurinhaop_especiais', document.getElementById('cfg-especiais').value);
   });
+
+  // Restaurar sessão salva automaticamente
+  try {
+    const raw = localStorage.getItem(_SAVE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      const idadeH = (Date.now() - s.ts) / 3600000;
+      if (s && s.cfg && s.kits && idadeH < 24) {
+        const minutos = Math.round((Date.now() - s.ts) / 60000);
+        const tempoStr = minutos < 60 ? `${minutos} min atrás` : `${Math.round(minutos/60)}h atrás`;
+        if (confirm(`⚠️ Sessão em andamento!\n\nLote L${s.cfg.lote} — ${s.processadas} fig. processadas — ${s.kitsProntos.length} kit(s) prontos\nSalvo ${tempoStr}\n\nRestaurar?`)) {
+          cfg = s.cfg;
+          kits = s.kits;
+          kitsSets = s.kits.map(k => new Set(k));
+          kitsProntos = s.kitsProntos || [];
+          especiais = s.especiais || [];
+          listaEspeciais = new Set(s.listaEspeciais || []);
+          extras = s.extras || 0;
+          processadas = s.processadas || 0;
+          limiteTotal = s.limiteTotal || 0;
+          logItems = s.logItems || [];
+          document.getElementById('tela-setup').style.display = 'none';
+          const app = document.getElementById('tela-app');
+          app.style.display = 'flex';
+          iniciarReconhecimento();
+          atualizarUI();
+          renderLog();
+          toast('✅ Sessão restaurada!');
+        }
+      }
+    }
+  } catch(e) {}
 });
 
 function parsearEstoqueInicial(txt) {
@@ -1163,6 +1195,27 @@ function cmdZerar() {
 }
 
 // ══════════════════════════════════════════
+// AUTO-SAVE — localStorage
+// ══════════════════════════════════════════
+const _SAVE_KEY = 'figurinhaop_sessao';
+
+function salvarEstadoLocal() {
+  try {
+    localStorage.setItem(_SAVE_KEY, JSON.stringify({
+      cfg, kits, kitsProntos,
+      especiais, listaEspeciais: [...listaEspeciais],
+      extras, processadas, limiteTotal,
+      logItems: logItems.slice(0, 300),
+      ts: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function limparEstadoLocal() {
+  localStorage.removeItem(_SAVE_KEY);
+}
+
+// ══════════════════════════════════════════
 // UI
 // ══════════════════════════════════════════
 function atualizarUI() {
@@ -1219,6 +1272,7 @@ function atualizarUI() {
       </div>`;
     }).join('');
   }
+  salvarEstadoLocal();
 }
 
 // ══════════════════════════════════════════
@@ -1448,6 +1502,7 @@ function encerrarLote() {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = arquivo; a.click();
   });
+  limparEstadoLocal();
   setTimeout(() => location.reload(), 1000);
 }
 </script>

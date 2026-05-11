@@ -752,6 +752,40 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('figurinhaop_especiais', document.getElementById('cfg-especiais').value);
     document.getElementById('esp-salvo-badge').style.display = '';
   });
+
+  // Restaurar sessão salva automaticamente
+  try {
+    const raw = localStorage.getItem(_SAVE_KEY);
+    if (raw) {
+      const s = JSON.parse(raw);
+      const idadeH = (Date.now() - s.ts) / 3600000;
+      if (s && s.cfg && s.kits && idadeH < 24) {
+        const minutos = Math.round((Date.now() - s.ts) / 60000);
+        const tempoStr = minutos < 60 ? `${minutos} min atrás` : `${Math.round(minutos/60)}h atrás`;
+        if (confirm(`⚠️ Sessão em andamento encontrada!\n\nLote L${s.cfg.lote} — ${s.processadas} fig. processadas — ${s.kitsProntos.length} kit(s) prontos\nSalvo ${tempoStr}\n\nRestaurar sessão?`)) {
+          cfg = s.cfg;
+          kits = s.kits;
+          kitsSets = s.kits.map(k => new Set(k));
+          kitsProntos = s.kitsProntos || [];
+          especiais = s.especiais || [];
+          listaEspeciais = new Set(s.listaEspeciais || []);
+          extras = s.extras || 0;
+          processadas = s.processadas || 0;
+          limiteTotal = s.limiteTotal || 0;
+          logItems = s.logItems || [];
+          document.getElementById('tela-setup').style.display = 'none';
+          document.getElementById('tela-app').style.display = 'block';
+          document.getElementById('top-lote').textContent = `L${cfg.lote}`;
+          document.getElementById('top-operador').textContent = cfg.operador;
+          setInterval(() => { document.getElementById('top-hora').textContent = new Date().toLocaleTimeString('pt-BR'); }, 1000);
+          iniciarReconhecimento();
+          atualizarUI();
+          renderLog();
+          toast('✅ Sessão restaurada automaticamente!');
+        }
+      }
+    }
+  } catch(e) {}
 });
 
 function limparEspeciais() {
@@ -1405,6 +1439,27 @@ function cmdPronto() {
 }
 
 // ══════════════════════════════════════════
+// AUTO-SAVE — localStorage
+// ══════════════════════════════════════════
+const _SAVE_KEY = 'figurinhaop_sessao';
+
+function salvarEstadoLocal() {
+  try {
+    localStorage.setItem(_SAVE_KEY, JSON.stringify({
+      cfg, kits, kitsProntos,
+      especiais, listaEspeciais: [...listaEspeciais],
+      extras, processadas, limiteTotal,
+      logItems: logItems.slice(0, 300),
+      ts: Date.now()
+    }));
+  } catch(e) {}
+}
+
+function limparEstadoLocal() {
+  localStorage.removeItem(_SAVE_KEY);
+}
+
+// ══════════════════════════════════════════
 // UI
 // ══════════════════════════════════════════
 const kitsExpandidos = new Set();
@@ -1495,6 +1550,7 @@ function atualizarUI() {
     document.getElementById('especiais-figs').innerHTML = especiais.map(id => `<span class="fig-especial">${id}</span>`).join('');
     document.getElementById('badge-esp-count').textContent = especiais.length;
   } else { cardEsp.style.display = 'none'; }
+  salvarEstadoLocal();
 }
 
 // ══════════════════════════════════════════
@@ -1667,6 +1723,7 @@ async function encerrarLote() {
     baixar('﻿' + csvStr, nomeCSV, 'text/csv;charset=utf-8;');
     baixar(estadoStr, nomeTXT, 'text/plain');
   }
+  limparEstadoLocal();
   setTimeout(() => location.reload(), 800);
 }
 
