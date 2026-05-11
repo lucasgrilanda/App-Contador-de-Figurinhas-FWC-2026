@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>CopaManager OCR</title>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--borda:#30363d;--texto:#e6edf3;--texto2:#7d8590;--verde:#3fb950;--verde-d:#238636;--amarelo:#d29922;--amarelo-l:#e3b341;--azul:#388bfd;--roxo:#8957e5;--vermelho:#f85149;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--texto);font-family:-apple-system,'Archivo',sans-serif;overflow:hidden;user-select:none;}
+
+/* ── INIT SCREEN ─────────────────────────────────────────────────── */
+#init{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:18px;z-index:100;padding:32px;}
+#init h2{color:var(--amarelo-l);font-size:1.3rem;font-weight:900;}
+#init p{color:var(--texto2);font-size:0.82rem;text-align:center;line-height:1.6;}
+#init .hint{font-size:0.7rem;color:var(--texto2);opacity:0.6;}
+#btn-start{padding:14px 36px;background:var(--verde-d);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;}
+#btn-start:active{opacity:0.85;}
+
+/* ── SETUP SCREEN ────────────────────────────────────────────────── */
+#setup{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);gap:14px;z-index:99;padding:28px;}
+#setup h3{color:var(--amarelo-l);font-size:1rem;font-weight:900;align-self:flex-start;}
+.setup-row{width:100%;display:flex;flex-direction:column;gap:6px;}
+.setup-row label{font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--texto2);font-family:monospace;}
+.setup-row input{background:var(--bg3);border:1px solid var(--borda);border-radius:6px;color:var(--texto);font-family:monospace;font-size:1rem;padding:10px 14px;outline:none;width:100%;}
+.setup-row input:focus{border-color:var(--amarelo);}
+#btn-abrir{width:100%;padding:13px;background:var(--amarelo);color:#000;border:none;border-radius:8px;font-size:1rem;font-weight:900;cursor:pointer;margin-top:6px;}
+
+/* ── APP ─────────────────────────────────────────────────────────── */
+#app{display:none;flex-direction:column;height:100%;height:-webkit-fill-available;}
+
+/* Topbar */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--borda);flex-shrink:0;padding-top:max(10px,env(safe-area-inset-top));}
+.tlogo{font-weight:900;color:var(--amarelo-l);font-size:0.9rem;letter-spacing:0.5px;}
+.tkits{font-family:monospace;font-size:0.72rem;color:var(--texto2);}
+.tkits b{color:var(--texto);}
+
+/* Camera */
+.cam-wrap{position:relative;flex:0 0 48%;background:#000;overflow:hidden;}
+#video{width:100%;height:100%;object-fit:cover;display:block;}
+#overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.scan-tip{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:0.68rem;color:rgba(255,255,255,0.65);background:rgba(0,0,0,0.55);padding:3px 12px;border-radius:10px;white-space:nowrap;pointer-events:none;}
+
+/* Detect bar */
+.det-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 16px;background:var(--bg2);border-bottom:1px solid var(--borda);flex-shrink:0;}
+.det-code{font-family:monospace;font-size:1.3rem;font-weight:700;color:var(--amarelo-l);letter-spacing:3px;min-width:80px;}
+.det-code.vazio{color:var(--texto2);font-size:0.82rem;font-weight:400;letter-spacing:0;}
+.dots{display:flex;gap:6px;align-items:center;}
+.dot{width:11px;height:11px;border-radius:50%;background:var(--borda);transition:background 0.2s;}
+.dot.wait{background:var(--amarelo);}
+.dot.ok{background:var(--verde);}
+
+/* Progress */
+.prog{height:3px;background:var(--borda);flex-shrink:0;}
+.prog-fill{height:100%;background:var(--verde);transition:width 0.35s;}
+
+/* Stats */
+.stats{display:flex;border-bottom:1px solid var(--borda);flex-shrink:0;background:var(--bg2);}
+.st{flex:1;text-align:center;padding:6px 2px;border-right:1px solid var(--borda);}
+.st:last-child{border-right:none;}
+.stv{font-family:monospace;font-size:1rem;font-weight:700;}
+.stl{font-size:0.52rem;text-transform:uppercase;letter-spacing:1px;color:var(--texto2);}
+.cv{color:var(--verde);}.ca{color:var(--amarelo-l);}.cb{color:var(--azul);}.cr{color:var(--roxo);}
+
+/* Kit chips */
+.kit-area{flex:1;overflow-y:auto;padding:10px 14px;-webkit-overflow-scrolling:touch;}
+.kit-area::-webkit-scrollbar{display:none;}
+.area-title{font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--texto2);margin-bottom:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{font-family:monospace;font-size:0.68rem;padding:3px 8px;border-radius:4px;background:var(--bg3);border:1px solid var(--borda);color:var(--texto2);}
+.chip.novo{border-color:var(--verde);color:var(--verde);}
+.chip.dup{border-color:var(--vermelho);color:var(--vermelho);}
+
+/* Controls */
+.controls{display:flex;flex-shrink:0;border-top:1px solid var(--borda);background:var(--bg2);padding-bottom:max(10px,env(safe-area-inset-bottom));}
+.cbtn{flex:1;padding:13px 4px;background:none;border:none;border-right:1px solid var(--borda);color:var(--texto2);font-size:0.72rem;font-family:monospace;cursor:pointer;}
+.cbtn:last-child{border-right:none;}
+.cbtn:active{background:var(--bg3);}
+.cbtn.pause-active{color:var(--amarelo-l);}
+</style>
+</head>
+<body>
+
+<!-- ══ INIT ══════════════════════════════════════════════════════════════ -->
+<div id="init">
+  <h2>📷 CopaManager OCR</h2>
+  <p>Aponte a câmera para a figurinha.<br>O app detecta e registra automaticamente.</p>
+  <button id="btn-start" onclick="irSetup()">Configurar e iniciar</button>
+  <span class="hint">Requer acesso à câmera e conexão com internet</span>
+</div>
+
+<!-- ══ SETUP ═════════════════════════════════════════════════════════════ -->
+<div id="setup">
+  <h3>Configuração do lote</h3>
+  <div class="setup-row">
+    <label>Figurinhas por kit</label>
+    <input type="number" id="cfg-kit" value="50" min="1" max="200">
+  </div>
+  <div class="setup-row">
+    <label>Figurinhas especiais (separadas por vírgula)</label>
+    <input type="text" id="cfg-esp" placeholder="BRA10, POR7..." autocomplete="off" autocorrect="off" autocapitalize="characters">
+  </div>
+  <button id="btn-abrir" onclick="abrirCamera()">Abrir câmera →</button>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <div class="topbar">
+    <span class="tlogo">Copa OCR 📷</span>
+    <span class="tkits">Kit <b id="tKitNum">1</b> — <b id="tKitQt">0</b>/<span id="tKitMax">50</span> · <b id="tProntos">0</b> prontos</span>
+  </div>
+
+  <div class="cam-wrap">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <canvas id="capture" style="display:none"></canvas>
+    <div class="scan-tip" id="tip">Aponte para a figurinha</div>
+  </div>
+
+  <div class="det-bar">
+    <span class="det-code vazio" id="detCode">aguardando...</span>
+    <div class="dots">
+      <div class="dot" id="dot1"></div>
+      <div class="dot" id="dot2"></div>
+    </div>
+  </div>
+
+  <div class="prog"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+
+  <div class="stats">
+    <div class="st"><div class="stv cv" id="stTotal">0</div><div class="stl">Total</div></div>
+    <div class="st"><div class="stv ca" id="stProntos">0</div><div class="stl">Prontos</div></div>
+    <div class="st"><div class="stv cb" id="stAtual">0</div><div class="stl">Kit atual</div></div>
+    <div class="st"><div class="stv cr" id="stExtras">0</div><div class="stl">Extras</div></div>
+  </div>
+
+  <div class="kit-area">
+    <div class="area-title">Kit atual</div>
+    <div class="chips" id="chipsKit"></div>
+  </div>
+
+  <div class="controls">
+    <button class="cbtn" onclick="undo()">↩ Voltar</button>
+    <button class="cbtn" onclick="cmdExtra()">＋ Extra</button>
+    <button class="cbtn" id="btnPause" onclick="togglePause()">⏸ Pausar</button>
+    <button class="cbtn" onclick="exportar()">📥 Exportar</button>
+  </div>
+
+</div>
+
+<script>
+// ── Configuração ─────────────────────────────────────────────────────────────
+const CONFIRM_NEEDED = 2;     // confirmações para registrar
+const LOOP_MS        = 450;   // intervalo entre capturas (ms)
+const PAUSE_AFTER_OK = 1300;  // pausa após registrar (ms)
+
+// ── Prefixos válidos ─────────────────────────────────────────────────────────
+const PV = {
+  FWC:{min:1,max:19},
+  ALG:{min:1,max:20},ARG:{min:1,max:20},AUS:{min:1,max:20},AUT:{min:1,max:20},
+  BEL:{min:1,max:20},BIH:{min:1,max:20},BRA:{min:1,max:20},CAN:{min:1,max:20},
+  CC:{min:1,max:14},CIV:{min:1,max:20},COD:{min:1,max:20},COL:{min:1,max:20},
+  CPV:{min:1,max:20},CRO:{min:1,max:20},CUW:{min:1,max:20},CZE:{min:1,max:20},
+  ECU:{min:1,max:20},EGY:{min:1,max:20},ENG:{min:1,max:20},ESP:{min:1,max:20},
+  FRA:{min:1,max:20},GER:{min:1,max:20},GHA:{min:1,max:20},HAI:{min:1,max:20},
+  IRN:{min:1,max:20},IRQ:{min:1,max:20},JOR:{min:1,max:20},JPN:{min:1,max:20},
+  KOR:{min:1,max:20},KSA:{min:1,max:20},MAR:{min:1,max:20},MEX:{min:1,max:20},
+  NED:{min:1,max:20},NOR:{min:1,max:20},NZL:{min:1,max:20},PAN:{min:1,max:20},
+  PAR:{min:1,max:20},POR:{min:1,max:20},QAT:{min:1,max:20},RSA:{min:1,max:20},
+  SCO:{min:1,max:20},SEN:{min:1,max:20},SUI:{min:1,max:20},SWE:{min:1,max:20},
+  TUN:{min:1,max:20},TUR:{min:1,max:20},URU:{min:1,max:20},USA:{min:1,max:20},
+  UZB:{min:1,max:20}
+};
+
+function validar(id) {
+  if (id === '00') return true;
+  const m = id.match(/^([A-Z]{2,3})(\d+)$/);
+  if (!m) return false;
+  const p = PV[m[1]]; if (!p) return false;
+  const n = parseInt(m[2]);
+  return n >= p.min && n <= p.max;
+}
+
+// ── Estado ───────────────────────────────────────────────────────────────────
+let kitSize     = 50;
+let especiais   = new Set();
+let kits        = [[]];       // kits[0] = kit atual
+let kitsSet     = [new Set()];
+let extras      = 0;
+let history     = [];
+let paused      = false;
+let detecting   = false;
+let lastCode    = null;
+let streak      = 0;
+
+// ── Áudio ─────────────────────────────────────────────────────────────────────
+let actx;
+function ac() { if (!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); return actx; }
+function beep(t) {
+  try {
+    const a = ac(), o = a.createOscillator(), g = a.createGain();
+    o.connect(g); g.connect(a.destination);
+    if (t==='ok') {
+      o.type='sine'; o.frequency.setValueAtTime(880,a.currentTime); o.frequency.linearRampToValueAtTime(1320,a.currentTime+0.15);
+      g.gain.setValueAtTime(0.3,a.currentTime); g.gain.linearRampToValueAtTime(0,a.currentTime+0.22);
+      o.start(); o.stop(a.currentTime+0.22);
+    } else if (t==='kit') {
+      [880,1100,1320,1760].forEach((f,i)=>{
+        const oo=a.createOscillator(),gg=a.createGain();
+        oo.connect(gg); gg.connect(a.destination);
+        oo.type='sine'; oo.frequency.value=f;
+        gg.gain.setValueAtTime(0.25,a.currentTime+i*0.1); gg.gain.linearRampToValueAtTime(0,a.currentTime+i*0.1+0.15);
+        oo.start(a.currentTime+i*0.1); oo.stop(a.currentTime+i*0.1+0.15);
+      });
+    } else {
+      o.type='sawtooth'; o.frequency.setValueAtTime(220,a.currentTime); o.frequency.linearRampToValueAtTime(130,a.currentTime+0.2);
+      g.gain.setValueAtTime(0.2,a.currentTime); g.gain.linearRampToValueAtTime(0,a.currentTime+0.2);
+      o.start(); o.stop(a.currentTime+0.2);
+    }
+  } catch(e){}
+}
+
+// ── Navegação das telas ───────────────────────────────────────────────────────
+function irSetup() {
+  document.getElementById('init').style.display  = 'none';
+  document.getElementById('setup').style.display = 'flex';
+}
+
+async function abrirCamera() {
+  kitSize   = parseInt(document.getElementById('cfg-kit').value) || 50;
+  const esp = document.getElementById('cfg-esp').value;
+  especiais = new Set(esp.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean));
+  document.getElementById('tKitMax').textContent = kitSize;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode:'environment', width:{ideal:1280}, height:{ideal:720} },
+      audio: false
+    });
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    await video.play();
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('app').style.display   = 'flex';
+    requestAnimationFrame(drawLoop);
+    setTimeout(loopDetect, 800);
+  } catch(e) {
+    alert('Erro ao acessar câmera: ' + e.message);
+  }
+}
+
+// ── Câmera — overlay ──────────────────────────────────────────────────────────
+const overlay  = document.getElementById('overlay');
+const overlayCtx = overlay.getContext('2d');
+
+const BOX_W = 0.74;
+const BOX_H = 0.52;
+
+function getBox() {
+  const dw = overlay.offsetWidth, dh = overlay.offsetHeight;
+  const bw = dw * BOX_W, bh = dh * BOX_H;
+  const bx = (dw - bw) / 2, by = (dh - bh) / 2;
+  return { bx, by, bw, bh, dw, dh };
+}
+
+function drawLoop() {
+  const { bx, by, bw, bh, dw, dh } = getBox();
+  overlay.width  = dw;
+  overlay.height = dh;
+  const c = overlayCtx;
+
+  // Escurece fora do box
+  c.fillStyle = 'rgba(0,0,0,0.48)';
+  c.fillRect(0, 0, dw, dh);
+  c.clearRect(bx, by, bw, bh);
+
+  // Cor do frame (verde se detectando, amarelo em espera)
+  const cor = streak > 0 ? '#3fb950' : '#e3b341';
+  c.strokeStyle = cor; c.lineWidth = 2;
+  c.strokeRect(bx, by, bw, bh);
+
+  // Cantos
+  const corner = 22;
+  c.lineWidth = 3; c.strokeStyle = cor;
+  [[bx,by,1,1],[bx+bw,by,-1,1],[bx,by+bh,1,-1],[bx+bw,by+bh,-1,-1]].forEach(([cx,cy,sx,sy])=>{
+    c.beginPath();
+    c.moveTo(cx+sx*corner, cy); c.lineTo(cx,cy); c.lineTo(cx, cy+sy*corner);
+    c.stroke();
+  });
+
+  // Barra de progresso da confirmação dentro do box
+  if (streak > 0) {
+    const pct = streak / CONFIRM_NEEDED;
+    c.fillStyle = 'rgba(63,185,80,0.35)';
+    c.fillRect(bx, by+bh-4, bw*pct, 4);
+  }
+
+  requestAnimationFrame(drawLoop);
+}
+
+// ── Câmera — captura ──────────────────────────────────────────────────────────
+function captureBox() {
+  const video = document.getElementById('video');
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) return null;
+
+  const { bx, by, bw, bh, dw, dh } = getBox();
+  const capture = document.getElementById('capture');
+
+  // Mapeamento display → video (object-fit: cover)
+  const s    = Math.max(dw/vw, dh/vh);          // escala vídeo→display
+  const offX = (vw*s - dw) / 2;                 // excesso horizontal em px de display
+  const offY = (vh*s - dh) / 2;
+  const vbx  = (bx + offX) / s;
+  const vby  = (by + offY) / s;
+  const vbw  = bw / s;
+  const vbh  = bh / s;
+
+  capture.width  = Math.round(vbw);
+  capture.height = Math.round(vbh);
+  capture.getContext('2d').drawImage(video, vbx, vby, vbw, vbh, 0, 0, capture.width, capture.height);
+
+  return capture.toDataURL('image/jpeg', 0.82).split(',')[1];
+}
+
+// ── Loop de detecção ──────────────────────────────────────────────────────────
+async function loopDetect() {
+  if (paused)    { setTimeout(loopDetect, 400); return; }
+  if (detecting) { setTimeout(loopDetect, 150); return; }
+  detecting = true;
+
+  try {
+    const img = captureBox();
+    if (img) {
+      const res  = await fetch('/.netlify/functions/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: img })
+      });
+      const { code } = await res.json();
+
+      // Validação extra no cliente
+      const detected = (code && validar(code)) ? code : null;
+      atualizarDetect(detected);
+
+      if (detected) {
+        if (detected === lastCode) { streak++; }
+        else { lastCode = detected; streak = 1; }
+
+        if (streak >= CONFIRM_NEEDED) {
+          registrar(detected);
+          lastCode = null; streak = 0;
+          detecting = false;
+          setTimeout(loopDetect, PAUSE_AFTER_OK);
+          return;
+        }
+      } else {
+        lastCode = null; streak = 0;
+      }
+    }
+  } catch(e) {
+    console.warn('OCR:', e.message);
+  }
+
+  detecting = false;
+  setTimeout(loopDetect, LOOP_MS);
+}
+
+// ── Registrar figurinha ───────────────────────────────────────────────────────
+function registrar(id) {
+  const kitIdx = kits.length - 1;
+  const kit    = kits[kitIdx];
+  const kitSet = kitsSet[kitIdx];
+
+  if (especiais.has(id)) {
+    extras++;
+    history.push({ type:'extra', id });
+    beep('ok');
+    setTip('⭐ Especial: ' + id);
+    atualizarUI();
+    return;
+  }
+
+  if (kitSet.has(id)) {
+    beep('err');
+    setTip('⚠ Repetida: ' + id);
+    return;
+  }
+
+  kit.push(id);
+  kitSet.add(id);
+  history.push({ type:'fig', kitIdx, id });
+  beep('ok');
+  setTip('✓ ' + id);
+  atualizarUI();
+
+  // Kit cheio → começa novo
+  if (kit.length >= kitSize) {
+    kits.push([]);
+    kitsSet.push(new Set());
+    beep('kit');
+    setTip('🎉 Kit ' + kits.length + ' completo!');
+  }
+}
+
+// ── Undo ──────────────────────────────────────────────────────────────────────
+function undo() {
+  if (!history.length) return;
+  const last = history.pop();
+  if (last.type === 'fig') {
+    // Se o kit ainda existe e tem esse id
+    const kit = kits[last.kitIdx];
+    if (kit) {
+      const i = kit.lastIndexOf(last.id);
+      if (i >= 0) { kit.splice(i,1); kitsSet[last.kitIdx].delete(last.id); }
+    }
+  } else if (last.type === 'extra') {
+    extras = Math.max(0, extras-1);
+  }
+  atualizarUI();
+  setTip('↩ Desfeito');
+}
+
+function cmdExtra() {
+  extras++;
+  history.push({ type:'extra', id:'_extra' });
+  setTip('＋ Extra registrado');
+  atualizarUI();
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btnPause');
+  btn.textContent = paused ? '▶ Retomar' : '⏸ Pausar';
+  btn.classList.toggle('pause-active', paused);
+  if (paused) setTip('⏸ Pausado');
+  else { setTip('Aponte para a figurinha'); loopDetect(); }
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+let tipTimer = null;
+function setTip(txt, dur=2000) {
+  const el = document.getElementById('tip');
+  el.textContent = txt;
+  clearTimeout(tipTimer);
+  if (dur > 0) tipTimer = setTimeout(()=>{ el.textContent = paused?'⏸ Pausado':'Aponte para a figurinha'; }, dur);
+}
+
+function atualizarDetect(code) {
+  const el = document.getElementById('detCode');
+  const d1 = document.getElementById('dot1');
+  const d2 = document.getElementById('dot2');
+  if (code) {
+    el.textContent = code; el.className = 'det-code';
+    d1.className = 'dot ' + (streak>=1?'wait':'');
+    d2.className = 'dot ' + (streak>=2?'ok':'') + (streak===1?' wait':'');
+  } else {
+    el.textContent = 'aguardando...'; el.className = 'det-code vazio';
+    d1.className = 'dot'; d2.className = 'dot';
+  }
+}
+
+function atualizarUI() {
+  const kitIdx  = kits.length - 1;
+  const kitAtual= kits[kitIdx];
+  const prontos = kits.length - 1;
+  const total   = kits.slice(0,-1).reduce((s,k)=>s+k.length,0) + kitAtual.length;
+
+  document.getElementById('tKitNum').textContent  = kits.length;
+  document.getElementById('tKitQt').textContent   = kitAtual.length;
+  document.getElementById('tProntos').textContent = prontos;
+  document.getElementById('stTotal').textContent  = total;
+  document.getElementById('stProntos').textContent= prontos;
+  document.getElementById('stAtual').textContent  = kitAtual.length;
+  document.getElementById('stExtras').textContent = extras;
+  document.getElementById('progFill').style.width = (kitAtual.length/kitSize*100)+'%';
+
+  // Chips
+  const wrap = document.getElementById('chipsKit');
+  wrap.innerHTML = '';
+  kitAtual.forEach((id,i)=>{
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (i===kitAtual.length-1?' novo':'');
+    chip.textContent = id;
+    wrap.appendChild(chip);
+  });
+}
+
+// ── Exportar ──────────────────────────────────────────────────────────────────
+function exportar() {
+  const todos = kits.filter(k=>k.length>0);
+  if (!todos.length) { alert('Nenhuma figurinha registrada.'); return; }
+  let csv = 'Kit,Figurinha\n';
+  todos.forEach((kit,ki)=> kit.forEach(id=> { csv += `Kit ${ki+1},${id}\n`; }));
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `copa_ocr_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+atualizarUI();
+</script>
+</body>
+</html>
