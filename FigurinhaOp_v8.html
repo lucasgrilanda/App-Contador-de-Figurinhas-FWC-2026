@@ -724,7 +724,6 @@ let historico = []; // { tipo:'normal'|'especial'|'extra', id, kitArr, kitSet }
 let logItems = [];
 let popupFila = [], popupAtual = null, filaVoz = [];
 let micAtivo = false, micRodando = false, reconhecimento = null;
-let lastFalaFinal = ''; // última transcrição final (para força via Enter)
 
 // ══════════════════════════════════════════
 // SETUP
@@ -869,7 +868,6 @@ function iniciarLote() {
   atualizarUI();
   log('cmd', '🟢', `Lote L${cfg.lote} iniciado — Kit: ${cfg.tamanhoKit} — Operador: ${cfg.operador}`);
   if (!heranca) toast('Lote iniciado! Pressione ESPAÇO para ativar o microfone.');
-  document.getElementById('teclado-input').focus();
 }
 
 // ══════════════════════════════════════════
@@ -887,9 +885,8 @@ function receberTranscricao(texto) {
   el.textContent = texto;
   el.className = 'transcricao' + (micAtivo ? ' ativa' : '');
   const fala = texto.toLowerCase();
-  lastFalaFinal = fala;
   if (popupAtual) {
-    if (/\b(ok|okay)\b/.test(fala)) confirmarPopup();
+    if (/\b(ok|okay|o\.?k\.?)\b/.test(fala) || fala.trim()==='ok') confirmarPopup();
     else {
       const { validos, invalidos } = extrairFigurinhas(fala);
       if (validos.length) {
@@ -1279,15 +1276,6 @@ function tecladoKeydown(e) {
   if (e.key !== 'Enter') return;
   e.preventDefault();
   if (popupAtual) { confirmarPopup(); return; }
-  const val = document.getElementById('teclado-input').value.trim();
-  // Campo vazio + Enter → força processar última leitura de voz
-  if (!val && lastFalaFinal) {
-    const fala = lastFalaFinal; lastFalaFinal = '';
-    log('cmd', '⏎', `Força: "${fala.slice(0,30)}"`);
-    processarFala(fala);
-    document.getElementById('teclado-input').focus();
-    return;
-  }
   tecladoProcessar();
 }
 
@@ -1495,7 +1483,7 @@ function atualizarUI() {
 function log(tipo, icone, msg) {
   const dt = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR');
   logItems.unshift({ tipo, icone, msg, dt });
-  if (logItems.length > 300) logItems.pop();
+  if (logItems.length > 2000) logItems.pop();
   renderLog();
 }
 function renderLog() {
@@ -1676,13 +1664,6 @@ document.addEventListener('keydown', e => {
   if (e.code === 'Space' && noInput) {
     e.preventDefault();
     if (reconhecimento) toggleMic();
-  }
-  // Enter fora do campo de teclado → força última leitura de voz
-  if (e.key === 'Enter' && noInput && lastFalaFinal) {
-    e.preventDefault();
-    const fala = lastFalaFinal; lastFalaFinal = '';
-    log('cmd', '⏎', `Força: "${fala.slice(0,30)}"`);
-    processarFala(fala);
   }
 });
 </script>

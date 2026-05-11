@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CopaManager — Aliases de Voz</title>
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2333;--borda:#30363d;--texto:#e6edf3;--texto2:#7d8590;--verde:#3fb950;--amarelo-l:#e3b341;--azul:#388bfd;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--texto);font-family:-apple-system,'Archivo',sans-serif;padding-bottom:32px;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--borda);padding:12px 16px;position:sticky;top:0;z-index:10;}
+.topbar h1{font-size:0.95rem;font-weight:900;color:var(--amarelo-l);margin-bottom:8px;}
+#busca{width:100%;background:var(--bg3);border:1px solid var(--borda);border-radius:8px;color:var(--texto);font-size:0.9rem;padding:8px 12px;outline:none;}
+#busca:focus{border-color:var(--amarelo-l);}
+.hint{font-size:0.65rem;color:var(--texto2);margin-top:5px;}
+.lista{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.card{background:var(--bg2);border:1px solid var(--borda);border-radius:10px;overflow:hidden;}
+.card-header{padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--borda);}
+.flag{font-size:1.3rem;line-height:1;}
+.pais-nome{font-weight:700;font-size:0.88rem;}
+.prefixo{font-family:monospace;font-size:0.7rem;padding:2px 7px;border-radius:4px;background:var(--bg3);color:var(--amarelo-l);border:1px solid var(--borda);margin-left:auto;flex-shrink:0;}
+.aliases{padding:10px 14px;display:flex;flex-wrap:wrap;gap:5px;}
+.tag{font-family:monospace;font-size:0.68rem;padding:3px 8px;border-radius:4px;background:var(--bg3);border:1px solid var(--borda);color:var(--texto2);}
+.tag.curto{border-color:var(--azul);color:var(--azul);}
+.tag.fonético{border-color:#8957e5;color:#8957e5;}
+.card.hidden{display:none;}
+.separador{font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--texto2);padding:4px 0 2px;}
+.nav-back{display:inline-block;margin:12px 14px 0;font-size:0.75rem;color:var(--texto2);text-decoration:none;font-family:monospace;}
+.nav-back:hover{color:var(--amarelo-l);}
+.legenda{margin:10px 14px 0;display:flex;gap:10px;flex-wrap:wrap;}
+.leg{font-size:0.65rem;display:flex;align-items:center;gap:4px;color:var(--texto2);}
+.leg .tag{font-size:0.6rem;padding:1px 5px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📢 Aliases de Voz — CopaManager</h1>
+  <input id="busca" type="search" placeholder="Buscar país ou alias..." autocomplete="off" autocorrect="off">
+  <div class="hint">Tags <span style="color:var(--azul)">azuis</span> = atalho 2 letras &nbsp;·&nbsp; <span style="color:#8957e5">roxas</span> = fonéticos Chrome</div>
+</div>
+
+<a class="nav-back" href="/">← Voltar ao app</a>
+
+<div class="lista" id="lista"></div>
+
+<script>
+const PAISES = [
+  { flag:'🌍', nome:'Copa do Mundo', codigo:'FWC',
+    aliases:['fwc','copa','copa do mundo','mundial','world cup','copa mundo','fifa'],
+    curtos:[], foneticos:[] },
+  { flag:'🇩🇿', nome:'Argélia', codigo:'ALG',
+    aliases:['argelia','algeria','alg','argelino'],
+    curtos:['al'], foneticos:[] },
+  { flag:'🇦🇷', nome:'Argentina', codigo:'ARG',
+    aliases:['argentina','arg','argentino','albiceleste'],
+    curtos:['ar'], foneticos:['amg'] },
+  { flag:'🇦🇺', nome:'Austrália', codigo:'AUS',
+    aliases:['australia','aus','aussie','australiana'],
+    curtos:[], foneticos:['aos','a uns','auss'] },
+  { flag:'🇦🇹', nome:'Áustria', codigo:'AUT',
+    aliases:['austria','aut','austriaco','austriaca'],
+    curtos:[], foneticos:['auto'] },
+  { flag:'🇧🇪', nome:'Bélgica', codigo:'BEL',
+    aliases:['belgica','belgium','bel','belga','belgio','diables rouges'],
+    curtos:['be'], foneticos:[] },
+  { flag:'🇧🇦', nome:'Bósnia e Herzegovina', codigo:'BIH',
+    aliases:['bosnia e herzegovina','bosnia','bih','bos','herzegovina','bh'],
+    curtos:['bi'], foneticos:['bosnea','business','beh','b e h'] },
+  { flag:'🇧🇷', nome:'Brasil', codigo:'BRA',
+    aliases:['brasil','brazil','bra','brasileiro','brasileira','brasileiros','canarinho','verde amarelo','selecao'],
+    curtos:['br','ba'], foneticos:['pra','bras'] },
+  { flag:'🇨🇦', nome:'Canadá', codigo:'CAN',
+    aliases:['canada','can','canadense','canadiano'],
+    curtos:['ca'], foneticos:['cam','sean'] },
+  { flag:'🇳🇱', nome:'Países Baixos', codigo:'CC',
+    aliases:['paises baixos','cc','baixos','pais baixo','paises'],
+    curtos:[], foneticos:[] },
+  { flag:'🇨🇮', nome:'Costa do Marfim', codigo:'CIV',
+    aliases:['costa do marfim','marfim','civ','ivory coast','costa marfim','marfinense','costa'],
+    curtos:['ci','iv'], foneticos:['c e v','cev','ciz'] },
+  { flag:'🇨🇩', nome:'Congo DR', codigo:'COD',
+    aliases:['congo dr','congo','cod','dr congo','congo democratico','republica congo'],
+    curtos:[], foneticos:['combo'] },
+  { flag:'🇨🇴', nome:'Colômbia', codigo:'COL',
+    aliases:['colombia','col','colombiana','colombiano'],
+    curtos:['cl'], foneticos:['cool'] },
+  { flag:'🇨🇻', nome:'Cabo Verde', codigo:'CPV',
+    aliases:['cabo verde','cabo','cpv','cape verde','verde','ilhas de cabo verde','c p v'],
+    curtos:['cp'], foneticos:['c e v','campanha'] },
+  { flag:'🇭🇷', nome:'Croácia', codigo:'CRO',
+    aliases:['croacia','croatia','cro','croata','hrvatska'],
+    curtos:['cr','ro'], foneticos:[] },
+  { flag:'🇨🇼', nome:'Curaçao', codigo:'CUW',
+    aliases:['curacao','cuw','curaca','curaso'],
+    curtos:['cu','cw','uw'], foneticos:['cow','ceu','se o','se o w','seow'] },
+  { flag:'🇨🇿', nome:'República Tcheca', codigo:'CZE',
+    aliases:['republica tcheca','tcheca','tcheco','cze','tche','czech','czechia','chequia','checa','republica checa','tchequinha','republica'],
+    curtos:['cz','ce','ze'], foneticos:['teca','cce'] },
+  { flag:'🇪🇨', nome:'Equador', codigo:'ECU',
+    aliases:['equador','ecuador','ecu','equatoriano','la tri'],
+    curtos:['ec'], foneticos:[] },
+  { flag:'🇪🇬', nome:'Egito', codigo:'EGY',
+    aliases:['egito','egypt','egy','egipto','egípcio'],
+    curtos:['eg'], foneticos:['gy','egey','e g e y','ey'] },
+  { flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', nome:'Inglaterra', codigo:'ENG',
+    aliases:['inglaterra','england','eng','ingles','inglesa','ingleses','britanica','britanicos','three lions'],
+    curtos:['en','ng'], foneticos:['enge','engle'] },
+  { flag:'🇪🇸', nome:'Espanha', codigo:'ESP',
+    aliases:['espanha','spain','esp','espanhola','espanhol','roja','la roja'],
+    curtos:['es','sp'], foneticos:[] },
+  { flag:'🇫🇷', nome:'França', codigo:'FRA',
+    aliases:['franca','france','fra','francesa','frances','franceses','les bleus','galo','galos'],
+    curtos:['fr'], foneticos:['fa'] },
+  { flag:'🇩🇪', nome:'Alemanha', codigo:'GER',
+    aliases:['alemanha','germany','ger','alema','deutschland','germania'],
+    curtos:['ge'], foneticos:['erm','e rm','ver'] },
+  { flag:'🇬🇭', nome:'Gana', codigo:'GHA',
+    aliases:['gana','ghana','gha','ganense','black stars'],
+    curtos:['gh'], foneticos:['ga','ch'] },
+  { flag:'🇭🇹', nome:'Haiti', codigo:'HAI',
+    aliases:['haiti','hai','haitiano','haitiana'],
+    curtos:['ha'], foneticos:['hi','h i','art'] },
+  { flag:'🇮🇷', nome:'Irã', codigo:'IRN',
+    aliases:['ira','iran','irn','iraniano','persia','persas'],
+    curtos:[], foneticos:[] },
+  { flag:'🇮🇶', nome:'Iraque', codigo:'IRQ',
+    aliases:['iraque','iraq','irq','iraquiano'],
+    curtos:[], foneticos:['erq'] },
+  { flag:'🇯🇴', nome:'Jordânia', codigo:'JOR',
+    aliases:['jordania','jordan','jor','jordao','jordanio'],
+    curtos:['jo'], foneticos:['john','joran'] },
+  { flag:'🇯🇵', nome:'Japão', codigo:'JPN',
+    aliases:['japao','japan','jpn','japones','japonesa','samurai'],
+    curtos:['jp'], foneticos:[] },
+  { flag:'🇰🇷', nome:'Coreia do Sul', codigo:'KOR',
+    aliases:['coreia do sul','coreia','korea','kor','south korea','coreana','coreano'],
+    curtos:['ko','kr'], foneticos:['core','corei','core i','que o r','queor'] },
+  { flag:'🇸🇦', nome:'Arábia Saudita', codigo:'KSA',
+    aliases:['arabia saudita','arabia','saudita','ksa','saudi','saudi arabia','arabes'],
+    curtos:['ks','ka'], foneticos:[] },
+  { flag:'🇲🇦', nome:'Marrocos', codigo:'MAR',
+    aliases:['marrocos','morocco','mar','marroquino','atlas'],
+    curtos:['ma'], foneticos:['nar','mr'] },
+  { flag:'🇲🇽', nome:'México', codigo:'MEX',
+    aliases:['mexico','mex','mexicano','mexicanos','el tri'],
+    curtos:['me','mx'], foneticos:['nex'] },
+  { flag:'🇳🇱', nome:'Holanda', codigo:'NED',
+    aliases:['holanda','netherlands','ned','holandesa','holandeses','nederland','laranja','laranjada'],
+    curtos:['ne','nd'], foneticos:['med','need','rolando'] },
+  { flag:'🇳🇴', nome:'Noruega', codigo:'NOR',
+    aliases:['noruega','norway','nor','norueguesa','noruegues'],
+    curtos:['no'], foneticos:['mor'] },
+  { flag:'🇳🇿', nome:'Nova Zelândia', codigo:'NZL',
+    aliases:['nova zelandia','nova zelanda','zelandia','zelanda','nzl','new zealand','kiwi','all whites','nova'],
+    curtos:['nz','nl'], foneticos:['ml','ncl','ceilandia'] },
+  { flag:'🇵🇦', nome:'Panamá', codigo:'PAN',
+    aliases:['panama','pan','panamense','panameno'],
+    curtos:[], foneticos:['ban','pm'] },
+  { flag:'🇵🇾', nome:'Paraguai', codigo:'PAR',
+    aliases:['paraguai','paraguay','par','paraguaio','paraguaia','guarani'],
+    curtos:[], foneticos:['bar','baraguai'] },
+  { flag:'🇵🇹', nome:'Portugal', codigo:'POR',
+    aliases:['portugal','por','portuguesa','portugues','luso','lusas','lusitania','navegadores'],
+    curtos:['po'], foneticos:['pior','bor','bortugal','pr','e o r','eor'] },
+  { flag:'🇶🇦', nome:'Catar', codigo:'QAT',
+    aliases:['catar','qatar','qat','quatar','catari','que a t','que a te','que at','kata','cata','quata'],
+    curtos:['qa'], foneticos:['qt','q t','catarro','que a'] },
+  { flag:'🇿🇦', nome:'África do Sul', codigo:'RSA',
+    aliases:['africa do sul','africa','rsa','south africa','sul africana','bafana','sul'],
+    curtos:['rs'], foneticos:[] },
+  { flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', nome:'Escócia', codigo:'SCO',
+    aliases:['escocia','scotland','sco','escocesa','escoces','escoceses'],
+    curtos:['sc','so'], foneticos:['escola'] },
+  { flag:'🇸🇳', nome:'Senegal', codigo:'SEN',
+    aliases:['senegal','sen','senegalesa','teranga'],
+    curtos:['se','sn'], foneticos:[] },
+  { flag:'🇨🇭', nome:'Suíça', codigo:'SUI',
+    aliases:['suica','switzerland','sui','suissa','swiss','helvetia'],
+    curtos:['su','si','ui'], foneticos:['sue'] },
+  { flag:'🇸🇪', nome:'Suécia', codigo:'SWE',
+    aliases:['suecia','sweden','swe','sueca','sueco','suecos'],
+    curtos:['sw'], foneticos:[] },
+  { flag:'🇹🇳', nome:'Tunísia', codigo:'TUN',
+    aliases:['tunisia','tun','tunis','tunisiana','tunisiano'],
+    curtos:['tn','un'], foneticos:['tum','dun'] },
+  { flag:'🇹🇷', nome:'Turquia', codigo:'TUR',
+    aliases:['turquia','turkey','tur','turca','turco','turcos','turkiye'],
+    curtos:['tr'], foneticos:[] },
+  { flag:'🇺🇾', nome:'Uruguai', codigo:'URU',
+    aliases:['uruguai','uruguay','uru','uruguaio','uruguaia','charruas','celeste'],
+    curtos:['ur','ru'], foneticos:['rua'] },
+  { flag:'🇺🇸', nome:'Estados Unidos', codigo:'USA',
+    aliases:['estados unidos','eua','usa','united states','americanos','estados'],
+    curtos:['us','ua'], foneticos:[] },
+  { flag:'🇺🇿', nome:'Uzbequistão', codigo:'UZB',
+    aliases:['uzbequistao','uzbekistao','uzb','uzbequi','uzbek'],
+    curtos:['uz'], foneticos:['usb','uv','bequistao','os bequistao','os beck','os back','os best','os b','use b','os bacon','z'] },
+];
+
+function renderizar(filtro) {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '';
+  const q = (filtro||'').toLowerCase().trim();
+  let visiveis = 0;
+
+  PAISES.forEach(p => {
+    const todosAliases = [...p.aliases, ...p.curtos, ...p.foneticos, p.codigo.toLowerCase(), p.nome.toLowerCase()];
+    const bate = !q || todosAliases.some(a => a.includes(q)) || p.nome.toLowerCase().includes(q) || p.codigo.toLowerCase().includes(q);
+    if (!bate) return;
+    visiveis++;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const header = document.createElement('div');
+    header.className = 'card-header';
+    header.innerHTML = `<span class="flag">${p.flag}</span><span class="pais-nome">${p.nome}</span><span class="prefixo">${p.codigo}</span>`;
+    card.appendChild(header);
+
+    const aliases = document.createElement('div');
+    aliases.className = 'aliases';
+
+    // Principais
+    p.aliases.forEach(a => {
+      const t = document.createElement('span'); t.className = 'tag'; t.textContent = a; aliases.appendChild(t);
+    });
+    // Curtos (azul)
+    p.curtos.forEach(a => {
+      const t = document.createElement('span'); t.className = 'tag curto'; t.textContent = a; aliases.appendChild(t);
+    });
+    // Fonéticos (roxo)
+    p.foneticos.forEach(a => {
+      const t = document.createElement('span'); t.className = 'tag fonético'; t.textContent = a; aliases.appendChild(t);
+    });
+
+    card.appendChild(aliases);
+    lista.appendChild(card);
+  });
+
+  if (visiveis === 0) {
+    lista.innerHTML = '<div style="color:var(--texto2);font-size:0.82rem;padding:20px 14px;">Nenhum resultado para "'+q+'"</div>';
+  }
+}
+
+document.getElementById('busca').addEventListener('input', e => renderizar(e.target.value));
+renderizar('');
+</script>
+</body>
+</html>
