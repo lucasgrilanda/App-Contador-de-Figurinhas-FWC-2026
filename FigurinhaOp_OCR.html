@@ -338,8 +338,16 @@ async function loopDetect() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: img })
       });
-      const { code } = await res.json();
+      const data = await res.json();
 
+      if (!res.ok) {
+        setTip('⚠ ' + (data.detail || data.error || 'Erro ' + res.status), 4000);
+        detecting = false;
+        setTimeout(loopDetect, 4000);
+        return;
+      }
+
+      const { code } = data;
       // Validação extra no cliente
       const detected = (code && validar(code)) ? code : null;
       atualizarDetect(detected);
@@ -360,7 +368,7 @@ async function loopDetect() {
       }
     }
   } catch(e) {
-    console.warn('OCR:', e.message);
+    setTip('⚠ ' + e.message, 4000);
   }
 
   detecting = false;
