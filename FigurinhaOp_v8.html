@@ -382,6 +382,7 @@ const PAIS_CODIGO = {
 
   // ── ARG — Argentina ──────────────────────────────────────────────────
   'argentina':'ARG','arg':'ARG','argentino':'ARG','albiceleste':'ARG',
+  'amg':'ARG', // Chrome ouve "arg" como "amg" (r→m)
 
   // ── AUS — Austrália ──────────────────────────────────────────────────
   'australia':'AUS','aus':'AUS','aussie':'AUS','australiana':'AUS',
@@ -398,6 +399,10 @@ const PAIS_CODIGO = {
   // ── BIH — Bósnia e Herzegovina ───────────────────────────────────────
   'bosnia e herzegovina':'BIH','bosnia':'BIH','bih':'BIH',
   'bos':'BIH','herzegovina':'BIH','bośnia':'BIH',
+  'bh':'BIH', // pos 1+3 (usuário solicitou: "Bh" → BIH)
+  'bosnea':'BIH', // Chrome ouve "bósnia" como "bosnea"
+  'business':'BIH', // Chrome delira completamente com "bih" soletrado
+  'beh':'BIH','b e h':'BIH', // Chrome ouve B-I-H soletrado como "b e h"
 
   // ── BRA — Brasil ─────────────────────────────────────────────────────
   'brasil':'BRA','brazil':'BRA','bra':'BRA',
@@ -428,11 +433,13 @@ const PAIS_CODIGO = {
   // ── COL — Colômbia ───────────────────────────────────────────────────
   'colombia':'COL','col':'COL','colombiana':'COL','colombiano':'COL',
   'cool':'COL', // Chrome ouve "col" como "cool"
+  'combo':'COL', // Chrome ouve "Colômbia" como "combo"
 
   // ── CPV — Cabo Verde ─────────────────────────────────────────────────
   'cabo verde':'CPV','cabo':'CPV','cpv':'CPV',
   'cape verde':'CPV','verde':'CPV','ilhas de cabo verde':'CPV',
-  'c p v':'CPV', // NÃO incluir 'cv' — ambíguo com CIV (Costa do Marfim)
+  'c p v':'CPV','c e v':'CPV', // "c e v" = Chrome ouve C-P-V soletrado (P→E)
+  // NÃO incluir 'cv' — ambíguo com CIV (Costa do Marfim)
   'campanha':'CPV', // Chrome ouve "cabo" como "campanha"
 
   // ── CRO — Croácia ────────────────────────────────────────────────────
@@ -441,12 +448,16 @@ const PAIS_CODIGO = {
 
   // ── CUW — Curaçao ────────────────────────────────────────────────────
   'curacao':'CUW','cuw':'CUW','curaca':'CUW','curaso':'CUW',
-  'se o w':'CUW','seow':'CUW', // C-U-W soletrado: "cê-u-dáblio" → Chrome ouve "se o w"
+  'cw':'CUW','uw':'CUW', // pos 1+3 e 2+3 — Chrome dropa letras de "cuw"
+  'cow':'CUW', // Chrome ouve "Curaçao" como "cow"
+  'ceu':'CUW', // Chrome ouve "Curaçao" como "ceu"
+  'se o':'CUW','se o w':'CUW','seow':'CUW', // C-U-W soletrado: "cê-u-dáblio" → "se o [w]"
 
   // ── CZE — República Tcheca ───────────────────────────────────────────
   'republica tcheca':'CZE','tcheca':'CZE','tcheco':'CZE',
   'cze':'CZE','tche':'CZE','czech':'CZE','czechia':'CZE',
   'chequia':'CZE','checa':'CZE','republica checa':'CZE',
+  'teca':'CZE', // Chrome ouve "Tcheca" como "teca" (ch→t)
   'tchequinha':'CZE','cce':'CZE','república checa':'CZE',
   'republica':'CZE', // palavra única (única com "república")
 
@@ -458,6 +469,7 @@ const PAIS_CODIGO = {
   'egito':'EGY','egypt':'EGY','egy':'EGY',
   'egipto':'EGY','egípcio':'EGY','egipcio':'EGY',
   'gy':'EGY','egey':'EGY','e g e y':'EGY', // E-G-Y soletrado: "e-gê-í" → "g y" ou "e g e y"
+  'ey':'EGY', // Chrome dropa o G: E-G-Y → "e y" (pos 1+3)
 
   // ── ENG — Inglaterra ─────────────────────────────────────────────────
   'inglaterra':'ENG','england':'ENG','eng':'ENG',
@@ -498,6 +510,7 @@ const PAIS_CODIGO = {
 
   // ── IRQ — Iraque ─────────────────────────────────────────────────────
   'iraque':'IRQ','iraq':'IRQ','irq':'IRQ','iraquiano':'IRQ',
+  'erq':'IRQ', // Chrome ouve I-R-Q soletrado como "erq" (i→e)
 
   // ── JOR — Jordânia ───────────────────────────────────────────────────
   'jordania':'JOR','jordan':'JOR','jor':'JOR',
@@ -623,6 +636,10 @@ const PAIS_CODIGO = {
   // ── UZB — Uzbequistão ────────────────────────────────────────────────
   'uzbequistao':'UZB','uzbekistao':'UZB','uzb':'UZB',
   'uzbequi':'UZB','uzbek':'UZB',
+  'usb':'UZB','uv':'UZB',                       // Chrome dropa letras: "uzb"→"usb" ou "uv"
+  'bequistao':'UZB','os bequistao':'UZB',        // ouve só o sufixo "-bequistão"
+  'os beck':'UZB','os back':'UZB','os best':'UZB', // variações fonéticas de "Uzbek-"
+  'os b':'UZB','use b':'UZB','os bacon':'UZB',   // outros erros observados nos logs
   'z':'UZB', // Chrome ouve "uzb" só como "z" (dropa U e B)
 
   // ── Aliases de 2 letras (unívocos — sem ambiguidade entre times) ─────
@@ -1040,9 +1057,7 @@ function extrairFigurinhas(fala) {
         if (/^\d+$/.test(tokensNorm[j2])) {
           numero = parseInt(tokensNorm[j2]); consumidoNum = 2;
         } else {
-          const mEmb2 = tokensNorm[j2].match(/^[a-z]*(\d+)$/);
-          if (mEmb2) { numero = parseInt(mEmb2[1]); consumidoNum = 2; }
-          else { const res2 = parsearNumPT(tokensRaw, j2); if (res2) { numero = res2[0]; consumidoNum = 1 + res2[1]; } }
+          const res2 = parsearNumPT(tokensRaw, j2); if (res2) { numero = res2[0]; consumidoNum = 1 + res2[1]; }
         }
       }
 
