@@ -144,6 +144,8 @@ html,body{height:100%;background:var(--bg);color:var(--texto);font-family:-apple
     <div class="chips" id="chipsKit"></div>
   </div>
 
+  <div id="debug-bar" style="padding:6px 12px;background:#0d1117;font-family:monospace;font-size:0.65rem;color:#f0883e;min-height:22px;word-break:break-all;border-top:1px solid #30363d;"></div>
+
   <div class="controls">
     <button class="cbtn" onclick="undo()">↩ Voltar</button>
     <button class="cbtn" onclick="cmdExtra()">＋ Extra</button>
@@ -346,6 +348,9 @@ async function loopDetect() {
         body: JSON.stringify({ image: img })
       });
       const data = await res.json();
+
+      const dbg = document.getElementById('debug-bar');
+      if (dbg) dbg.textContent = `HTTP ${res.status} | raw:"${data.raw||''}" code:"${data.code||''}" err:"${data.error||data.detail||''}"`;
 
       if (!res.ok) {
         setTip('⚠ ' + (data.detail || data.error || 'Erro ' + res.status), 4000);
