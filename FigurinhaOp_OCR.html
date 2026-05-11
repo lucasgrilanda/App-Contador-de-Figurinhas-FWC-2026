@@ -49,6 +49,9 @@ html,body{height:100%;background:var(--bg);color:var(--texto);font-family:-apple
 .dot{width:11px;height:11px;border-radius:50%;background:var(--borda);transition:background 0.2s;}
 .dot.wait{background:var(--amarelo);}
 .dot.ok{background:var(--verde);}
+.scan-pulse{font-family:monospace;font-size:0.65rem;color:var(--texto2);}
+.scan-pulse.ativo{color:var(--verde);animation:pisca 0.4s ease-in-out;}
+@keyframes pisca{0%{opacity:1;}50%{opacity:0.2;}100%{opacity:1;}}
 
 /* Progress */
 .prog{height:3px;background:var(--borda);flex-shrink:0;}
@@ -121,6 +124,7 @@ html,body{height:100%;background:var(--bg);color:var(--texto);font-family:-apple
   <div class="det-bar">
     <span class="det-code vazio" id="detCode">aguardando...</span>
     <div class="dots">
+      <span class="scan-pulse" id="scanPulse">◉</span>
       <div class="dot" id="dot1"></div>
       <div class="dot" id="dot2"></div>
     </div>
@@ -330,6 +334,9 @@ async function loopDetect() {
   if (detecting) { setTimeout(loopDetect, 150); return; }
   detecting = true;
 
+  const pulse = document.getElementById('scanPulse');
+  if (pulse) { pulse.className = 'scan-pulse ativo'; }
+
   try {
     const img = captureBox();
     if (img) {
@@ -371,6 +378,7 @@ async function loopDetect() {
     setTip('⚠ ' + e.message, 4000);
   }
 
+  if (pulse) { pulse.className = 'scan-pulse'; }
   detecting = false;
   setTimeout(loopDetect, LOOP_MS);
 }
