@@ -699,14 +699,20 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function parsearEstoqueInicial(txt) {
   if (!txt.trim()) return;
-  txt.split('|').forEach(parte => {
-    const m = parte.trim().match(/KIT\d+:(.+)/i);
+  const blocos = txt.split('|').map(s => s.trim()).filter(Boolean);
+  blocos.forEach((parte, i) => {
+    const m = parte.match(/KIT\d+:(.+)/i);
     if (!m) return;
     const ids = m[1].split(',').map(s => s.trim().toUpperCase()).filter(s => validarFigurinaID(s));
     if (!ids.length) return;
-    kits.push([]); kitsSets.push(new Set());
-    const idx = kits.length - 1;
-    ids.forEach(id => { kits[idx].push(id); kitsSets[idx].add(id); });
+    if (i === 0) {
+      // KIT1 preenche kits[0] diretamente (já existe, criado em iniciarLote)
+      ids.forEach(id => { kits[0].push(id); kitsSets[0].add(id); });
+    } else {
+      kits.push([]); kitsSets.push(new Set());
+      const idx = kits.length - 1;
+      ids.forEach(id => { kits[idx].push(id); kitsSets[idx].add(id); });
+    }
   });
 }
 

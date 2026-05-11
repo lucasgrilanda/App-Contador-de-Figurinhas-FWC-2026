@@ -772,29 +772,29 @@ function lerArquivoEstado(event) {
 
 function parsearEstoqueInicial(txt) {
   if (!txt.trim()) return;
-  txt.split('|').forEach(parte => {
-    const m = parte.trim().match(/KIT\d+:(.+)/i);
+  const blocos = txt.split('|').map(s => s.trim()).filter(Boolean);
+  blocos.forEach((parte, i) => {
+    const m = parte.match(/KIT\d+:(.+)/i);
     if (!m) return;
     const ids = m[1].split(',').map(s => s.trim().toUpperCase()).filter(s => validarFigurinaID(s));
     if (!ids.length) return;
-    kits.push([]); kitsSets.push(new Set());
-    const idx = kits.length - 1;
-    ids.forEach(id => { kits[idx].push(id); kitsSets[idx].add(id); });
+    if (i === 0) {
+      // KIT1 preenche kits[0] diretamente (já existe, criado em iniciarLote)
+      ids.forEach(id => { kits[0].push(id); kitsSets[0].add(id); });
+    } else {
+      kits.push([]); kitsSets.push(new Set());
+      const idx = kits.length - 1;
+      ids.forEach(id => { kits[idx].push(id); kitsSets[idx].add(id); });
+    }
   });
 }
 
 function processarKitsHerdados() {
-  if (kits.length <= 1) return null;
-  const figPool = [];
-  for (let i = 1; i < kits.length; i++) figPool.push(...kits[i]);
-  if (!figPool.length) return null;
-
-  kits = [[]]; kitsSets = [new Set()];
+  if (!kits[0].length && kits.length <= 1) return null;
   const completados = [];
-
-  figPool.forEach(id => {
-    const destIdx = encontrarKitDestino(id);
-    kits[destIdx].push(id); kitsSets[destIdx].add(id);
+  let changed = true;
+  while (changed) {
+    changed = false;
     if (kits[0].length >= cfg.tamanhoKit) {
       const kitNum = kitsProntos.length + 1;
       const kitLabel = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
@@ -804,8 +804,10 @@ function processarKitsHerdados() {
       completados.push({ label: kitLabel, figs: kitFigs });
       kits.shift(); kitsSets.shift();
       if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      changed = true;
     }
-  });
+  }
+  if (!completados.length && kits[0].length === 0) return null;
   return { completados, noKit0: kits[0].length };
 }
 
