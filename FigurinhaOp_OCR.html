@@ -337,53 +337,74 @@ async function loopDetect() {
   detecting = true;
 
   const pulse = document.getElementById('scanPulse');
-  if (pulse) { pulse.className = 'scan-pulse ativo'; }
+  const dbg   = document.getElementById('debug-bar');
+  if (pulse) pulse.className = 'scan-pulse ativo';
 
   try {
+    const video = document.getElementById('video');
+    const vw = video.videoWidth, vh = video.videoHeight;
+
+    if (!vw || !vh) {
+      if (dbg) dbg.textContent = `⚠ Câmera sem dimensões (${vw}x${vh}) — aguardando...`;
+      if (pulse) pulse.className = 'scan-pulse';
+      detecting = false;
+      setTimeout(loopDetect, 500);
+      return;
+    }
+
     const img = captureBox();
-    if (img) {
-      const res  = await fetch('/.netlify/functions/ocr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: img })
-      });
-      const data = await res.json();
+    if (!img) {
+      if (dbg) dbg.textContent = `⚠ captureBox retornou null`;
+      if (pulse) pulse.className = 'scan-pulse';
+      detecting = false;
+      setTimeout(loopDetect, 500);
+      return;
+    }
 
-      const dbg = document.getElementById('debug-bar');
-      if (dbg) dbg.textContent = `HTTP ${res.status} | raw:"${data.raw||''}" code:"${data.code||''}" err:"${data.error||data.detail||''}"`;
+    if (dbg) dbg.textContent = `Enviando... (${vw}x${vh})`;
 
-      if (!res.ok) {
-        setTip('⚠ ' + (data.detail || data.error || 'Erro ' + res.status), 4000);
+    const res  = await fetch('/.netlify/functions/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: img })
+    });
+    const data = await res.json();
+
+    if (dbg) dbg.textContent = `HTTP ${res.status} | raw:"${data.raw||''}" code:"${data.code||''}" err:"${data.error||data.detail||''}"`;
+
+    if (!res.ok) {
+      setTip('⚠ ' + (data.detail || data.error || 'Erro ' + res.status), 4000);
+      if (pulse) pulse.className = 'scan-pulse';
+      detecting = false;
+      setTimeout(loopDetect, 4000);
+      return;
+    }
+
+    const { code } = data;
+    const detected = (code && validar(code)) ? code : null;
+    atualizarDetect(detected);
+
+    if (detected) {
+      if (detected === lastCode) { streak++; }
+      else { lastCode = detected; streak = 1; }
+
+      if (streak >= CONFIRM_NEEDED) {
+        registrar(detected);
+        lastCode = null; streak = 0;
+        if (pulse) pulse.className = 'scan-pulse';
         detecting = false;
-        setTimeout(loopDetect, 4000);
+        setTimeout(loopDetect, PAUSE_AFTER_OK);
         return;
       }
-
-      const { code } = data;
-      // Validação extra no cliente
-      const detected = (code && validar(code)) ? code : null;
-      atualizarDetect(detected);
-
-      if (detected) {
-        if (detected === lastCode) { streak++; }
-        else { lastCode = detected; streak = 1; }
-
-        if (streak >= CONFIRM_NEEDED) {
-          registrar(detected);
-          lastCode = null; streak = 0;
-          detecting = false;
-          setTimeout(loopDetect, PAUSE_AFTER_OK);
-          return;
-        }
-      } else {
-        lastCode = null; streak = 0;
-      }
+    } else {
+      lastCode = null; streak = 0;
     }
   } catch(e) {
+    if (dbg) dbg.textContent = `⚠ Erro JS: ${e.message}`;
     setTip('⚠ ' + e.message, 4000);
   }
 
-  if (pulse) { pulse.className = 'scan-pulse'; }
+  if (pulse) pulse.className = 'scan-pulse';
   detecting = false;
   setTimeout(loopDetect, LOOP_MS);
 }
