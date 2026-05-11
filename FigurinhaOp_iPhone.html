@@ -240,6 +240,8 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
 .chip-pronto-del button{background:none;border:none;color:var(--vermelho);cursor:pointer;font-size:0.6rem;padding:0;opacity:0.5;}
 .chip-pronto-del button:active{opacity:1;}
 .modal-kit-info{font-size:0.72rem;color:var(--texto2);margin-bottom:10px;}
+.modal-kit-footer{padding:10px 14px;border-top:1px solid var(--borda);flex-shrink:0;}
+.btn-refazer-m{width:100%;padding:10px;background:none;border:1px solid #f0883e;border-radius:7px;color:#f0883e;font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;}
 
 /* MODAL ENCERRAR */
 .modal-enc{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);display:none;align-items:flex-end;justify-content:center;z-index:150;padding-bottom:env(safe-area-inset-bottom,0px);}
@@ -425,6 +427,9 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
   <div class="modal-kit-corpo">
     <div class="modal-kit-info" id="modal-kit-info"></div>
     <div class="modal-kit-chips" id="modal-kit-chips"></div>
+  </div>
+  <div class="modal-kit-footer">
+    <button class="btn-refazer-m" onclick="refazerKitProntoM()">↩ Voltar à formação</button>
   </div>
 </div>
 
@@ -1407,6 +1412,19 @@ function renderModalKit() {
   ).join('');
   document.getElementById('modal-kit-info').textContent = `${kit.figs.length} figurinhas — toque em × para remover`;
 }
+function refazerKitProntoM() {
+  const kp = kitsProntos[modalKitIdx];
+  if (!kp) return;
+  if (!confirm(`Voltar "${kp.label}" à formação?\n${kp.figs.length} figurinhas voltam como kit em andamento.`)) return;
+  kitsProntos.splice(modalKitIdx, 1);
+  kits.push([...kp.figs]);
+  kitsSets.push(new Set(kp.figs));
+  log('cmd', '↩️', `Kit ${kp.label} voltou à formação (${kp.figs.length} figs)`);
+  fecharModalKit();
+  atualizarUI();
+  toast(`${kp.label} voltado à formação`);
+}
+
 function removerDoPronto(figIdx) {
   const kit = kitsProntos[modalKitIdx];
   if (!kit) return;

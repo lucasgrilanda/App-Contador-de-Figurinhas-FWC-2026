@@ -104,6 +104,8 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
 .kit-tag.ok{background:rgba(125,133,144,0.12);color:var(--texto2);border:1px solid var(--borda);}
 .kit-prog{font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--texto2);display:flex;align-items:center;gap:8px;}
 .kit-expandir{font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--texto2);padding:2px 6px;border-radius:3px;border:1px solid var(--borda);background:var(--bg3);}
+.btn-refazer{background:none;border:1px solid var(--borda);border-radius:3px;color:var(--texto2);font-family:'JetBrains Mono',monospace;font-size:0.6rem;padding:2px 7px;cursor:pointer;transition:all 0.15s;}
+.btn-refazer:hover{border-color:#f0883e;color:#f0883e;}
 .kit-barra{height:3px;background:var(--bg3);}
 .kit-barra-fill{height:100%;background:linear-gradient(90deg,var(--verde-d),var(--verde));transition:width 0.35s ease;}
 .kit-figs{padding:8px 14px;display:flex;flex-wrap:wrap;gap:4px;max-height:90px;overflow-y:auto;}
@@ -1411,6 +1413,18 @@ function toggleKitExpandido(label) {
   atualizarUI();
 }
 
+function refazerKitPronto(idx) {
+  const kp = kitsProntos[idx];
+  if (!kp) return;
+  if (!confirm(`Voltar "${kp.label}" à formação?\n${kp.figs.length} figurinhas voltam como kit em andamento.`)) return;
+  kitsProntos.splice(idx, 1);
+  kits.push([...kp.figs]);
+  kitsSets.push(new Set(kp.figs));
+  log('cmd', '↩️', `Kit ${kp.label} voltou à formação (${kp.figs.length} figs)`);
+  atualizarUI();
+  toast(`${kp.label} voltado à formação`);
+}
+
 function atualizarUI() {
   // limiteTotal é variável de estado global (cresce +1 a cada extra)
   const pctLote = processadas / limiteTotal;
@@ -1461,7 +1475,11 @@ function atualizarUI() {
     card.innerHTML = `
       <div class="kit-header" onclick="toggleKitExpandido('${kp.label}')">
         <div class="kit-nome">${kp.label}<span class="kit-tag ok">✓ PRONTO</span></div>
-        <div class="kit-prog"><span>${kp.figs.length} figs</span><span class="kit-expandir">${expandido ? '▲ fechar' : '▼ ver'}</span></div>
+        <div class="kit-prog">
+          <span>${kp.figs.length} figs</span>
+          <button class="btn-refazer" onclick="event.stopPropagation();refazerKitPronto(${i})" title="Voltar à formação">↩ refazer</button>
+          <span class="kit-expandir">${expandido ? '▲ fechar' : '▼ ver'}</span>
+        </div>
       </div>
       <div class="kit-figs-expandida ${expandido ? 'aberta' : ''}">
         ${kp.figs.map(id => `<span class="fig-chip hist">${id}</span>`).join('')}
