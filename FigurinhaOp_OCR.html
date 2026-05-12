@@ -111,7 +111,7 @@ html,body{height:100%;background:var(--bg);color:var(--texto);font-family:-apple
 
   <div class="topbar">
     <span class="tlogo">Copa OCR 📷</span>
-    <span class="tkits">Kit <b id="tKitNum">1</b> — <b id="tKitQt">0</b>/<span id="tKitMax">50</span> · <b id="tProntos">0</b> prontos</span>
+    <span class="tkits">Kit <b id="tKitNum">1</b> — <b id="tKitQt">0</b>/<span id="tKitMax">50</span> · <b id="tProntos">0</b> prontos · <span id="loopCount" style="color:#f0883e">⚡0</span></span>
   </div>
 
   <div class="cam-wrap">
@@ -338,6 +338,8 @@ async function loopDetect() {
 
   const pulse = document.getElementById('scanPulse');
   const dbg   = document.getElementById('debug-bar');
+  const lc    = document.getElementById('loopCount');
+  if (lc) lc.textContent = '⚡' + (parseInt(lc.textContent.replace('⚡',''))||0) + 1;
   if (pulse) pulse.className = 'scan-pulse ativo';
 
   try {
