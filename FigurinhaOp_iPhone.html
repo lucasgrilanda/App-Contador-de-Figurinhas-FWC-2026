@@ -1010,11 +1010,9 @@ function processarFala(fala) {
   if (/\bzerar\b/.test(fala))   { cmdZerar();  return; }
   if (/\b(extra|extras|especial|especiais)\b/.test(fala)) { cmdExtra(); return; }
   const { validos, invalidos } = extrairFigurinhas(fala);
-  if (validos.length === 0 && invalidos.length > 0) {
-    playSound('err'); toast(`Código inválido: ${invalidos.join(', ')}`, true); return;
-  }
   if (validos.length === 0) {
-    if (/\d/.test(fala) || fala.trim().split(/\s+/).length >= 2) {
+    const tentativa = invalidos.length > 0 || /\d/.test(fala) || fala.trim().split(/\s+/).length >= 2;
+    if (tentativa) {
       playSound('err');
       log('cmd', '❓', `Não identificou: "${fala.slice(0,40)}"`);
     }

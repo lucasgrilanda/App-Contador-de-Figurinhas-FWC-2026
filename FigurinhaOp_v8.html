@@ -1189,15 +1189,9 @@ function processarFala(fala) {
 
   const { validos, invalidos } = extrairFigurinhas(fala);
 
-  if (validos.length === 0 && invalidos.length > 0) {
-    playSound('err');
-    falar('Inválido.', 3.0);
-    toast(`Código inválido: ${invalidos.join(', ')}`, true);
-    return;
-  }
-  if (validos.length === 0 && invalidos.length === 0) {
-    // Loga se tiver dígito (tentativa de figurinha) OU 2+ palavras
-    if (/\d/.test(fala) || fala.trim().split(/\s+/).length >= 2) {
+  if (validos.length === 0) {
+    const tentativa = invalidos.length > 0 || /\d/.test(fala) || fala.trim().split(/\s+/).length >= 2;
+    if (tentativa) {
       playSound('err');
       log('cmd', '❓', `Não identificou: "${fala.slice(0,40)}"`);
     }
