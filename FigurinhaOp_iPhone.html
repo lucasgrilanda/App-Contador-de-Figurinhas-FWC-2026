@@ -282,7 +282,7 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
   </div>
   <div class="campo">
     <label>Figurinhas por Kit</label>
-    <input type="number" id="cfg-kit" value="50" min="1" inputmode="numeric">
+    <input type="number" id="cfg-kit" value="100" min="1" inputmode="numeric">
   </div>
   <div class="campo">
     <label>Figurinhas Especiais</label>
@@ -302,16 +302,12 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
   <div class="guia-box">
     <div class="guia-box-titulo">⚠️ Microfone não funciona?</div>
     <div class="guia-passo">
-      <div class="guia-passo-titulo" style="font-size:0.75rem;color:var(--amarelo-l);font-weight:700;margin-bottom:4px;">🌐 Usando via Netlify (copamanager.netlify.app)</div>
-      <p>Acesse pelo <b>Chrome</b>. Na primeira vez, o Chrome pedirá permissão para usar o microfone — clique em <b>Permitir</b>.</p>
+      <div class="guia-passo-titulo" style="font-size:0.75rem;color:var(--amarelo-l);font-weight:700;margin-bottom:4px;">📱 Acesse pelo Chrome</div>
+      <p>Abra <b>copamanager.vercel.app</b> no <b>Chrome</b> (não Safari). Quando aparecer a permissão de microfone, toque em <b>Permitir</b>.</p>
     </div>
     <div class="guia-passo" style="margin-top:10px;">
       <div class="guia-passo-titulo" style="font-size:0.75rem;color:var(--amarelo-l);font-weight:700;margin-bottom:4px;">🔒 Se o Chrome bloqueou o microfone</div>
-      <p>Clique no ícone de cadeado/câmera na barra de endereços → <b>Permissões do site</b> → <b>Microfone: Permitir</b>.</p>
-    </div>
-    <div class="guia-passo" style="margin-top:10px;">
-      <div class="guia-passo-titulo" style="font-size:0.75rem;color:var(--amarelo-l);font-weight:700;margin-bottom:4px;">💻 Usando localmente (.bat)</div>
-      <p>Dê duplo clique em <b>Iniciar_FigurinhaOp.bat</b>. Se aparecer "Windows protegeu seu PC": <b>Mais informações → Executar assim mesmo</b>.</p>
+      <p>Toque no ícone de <b>cadeado</b> na barra de endereços → <b>Permissões</b> → <b>Microfone: Permitir</b> → recarregue a página.</p>
     </div>
   </div>
 </div>
@@ -1023,8 +1019,16 @@ function extrairFigurinhas(fala) {
     const t = tokensNorm[i];
     const mCodigo = t.match(/^([a-z]{2,4})(\d{1,2})$/);
     if (mCodigo) {
-      const id = (mCodigo[1] + mCodigo[2]).toUpperCase();
-      if (validarFigurinaID(id)) validos.push(id); else invalidos.push(id);
+      const idDireto = (mCodigo[1] + mCodigo[2]).toUpperCase();
+      if (validarFigurinaID(idDireto)) { validos.push(idDireto); }
+      else {
+        const aliasPrefix = PAIS_CODIGO[mCodigo[1]];
+        if (aliasPrefix) {
+          const idAlias = aliasPrefix + mCodigo[2];
+          if (validarFigurinaID(idAlias)) { validos.push(idAlias); }
+          else invalidos.push(idAlias);
+        } else { invalidos.push(idDireto); }
+      }
       i++; continue;
     }
     {
@@ -1141,10 +1145,14 @@ function adicionarFigurina(id) {
     if (kits[0].length >= cfg.tamanhoKit) {
       const kitNum = kitsProntos.length + 1;
       const kitLabel = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
-      kitsProntos.push({ label: kitLabel, figs: [...kits[0]] });
+      const kitFigs = kits[0].splice(0, cfg.tamanhoKit);
+      kitsProntos.push({ label: kitLabel, figs: kitFigs });
+      kitsSets[0] = new Set(kits[0]);
       log('kit-done', '🏆', `Kit ${kitLabel} completo!`);
-      kits.shift(); kitsSets.shift();
-      if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      if (kits[0].length === 0) {
+        kits.shift(); kitsSets.shift();
+        if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      }
       atualizarUI();
       mostrarPopup({
         tipo:'kit', icone:'🏆', titulo:`${kitLabel} Completo!`,
