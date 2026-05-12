@@ -407,6 +407,18 @@ body{min-height:100vh;min-height:-webkit-fill-available;background:var(--bg);col
 </div>
 
 <!-- POPUP OVERLAY -->
+<div id="modal-restaurar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--borda);border-radius:12px;padding:28px 24px;max-width:380px;width:90%;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:10px;">⚠️</div>
+    <div style="font-family:'Archivo Black',sans-serif;font-size:1.05rem;color:var(--amarelo-l);margin-bottom:8px;">Sessão em andamento</div>
+    <div id="mr-info" style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--texto2);margin-bottom:22px;line-height:1.9;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="restaurarSessao()" style="padding:14px;background:var(--amarelo);color:#000;border:none;border-radius:8px;font-family:'Archivo Black',sans-serif;font-size:0.95rem;cursor:pointer;">↩ Restaurar sessão</button>
+      <button onclick="descartarSessao()" style="padding:14px;background:transparent;color:var(--texto2);border:1px solid var(--borda);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;cursor:pointer;">🆕 Iniciar novo lote</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay">
   <div class="popup" id="popup">
     <div class="popup-icone" id="p-icone"></div>
@@ -709,37 +721,23 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('figurinhaop_especiais', document.getElementById('cfg-especiais').value);
   });
 
-  // Restaurar sessão salva automaticamente
+  // Restaurar sessão salva
   try {
     const raw = localStorage.getItem(_SAVE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
       const idadeH = (Date.now() - s.ts) / 3600000;
       if (s && s.cfg && s.kits && idadeH < 24) {
-        const minutos = Math.round((Date.now() - s.ts) / 60000);
-        const tempoStr = minutos < 60 ? `${minutos} min atrás` : `${Math.round(minutos/60)}h atrás`;
-        if (confirm(`⚠️ Sessão em andamento!\n\nLote L${s.cfg.lote} — ${s.processadas} fig. processadas — ${s.kitsProntos.length} kit(s) prontos\nSalvo ${tempoStr}\n\nRestaurar?`)) {
-          cfg = s.cfg;
-          kits = s.kits;
-          kitsSets = s.kits.map(k => new Set(k));
-          kitsProntos = s.kitsProntos || [];
-          especiais = s.especiais || [];
-          listaEspeciais = new Set(s.listaEspeciais || []);
-          extras = s.extras || 0;
-          processadas = s.processadas || 0;
-          limiteTotal = s.limiteTotal || 0;
-          logItems = s.logItems || [];
-          document.getElementById('tela-setup').style.display = 'none';
-          const app = document.getElementById('tela-app');
-          app.style.display = 'flex';
-          iniciarReconhecimento();
-          atualizarUI();
-          renderLog();
-          toast('✅ Sessão restaurada!');
+        if (s.v !== APP_VERSION) {
+          limparEstadoLocal();
+        } else {
+          mostrarModalRestaurar(s);
         }
+      } else {
+        limparEstadoLocal();
       }
     }
-  } catch(e) {}
+  } catch(e) { limparEstadoLocal(); }
 });
 
 function parsearEstoqueInicial(txt) {
@@ -1263,10 +1261,59 @@ function cmdZerar() {
 // AUTO-SAVE — localStorage
 // ══════════════════════════════════════════
 const _SAVE_KEY = 'figurinhaop_sessao';
+const APP_VERSION = 'v8.3';
+
+// ══════════════════════════════════════════
+// MODAL RESTAURAR SESSÃO
+// ══════════════════════════════════════════
+let _sessaoParaRestaurar = null;
+
+function mostrarModalRestaurar(s) {
+  _sessaoParaRestaurar = s;
+  const minutos = Math.round((Date.now() - s.ts) / 60000);
+  const tempoStr = minutos < 60 ? `${minutos} min atrás` : `${Math.round(minutos/60)}h atrás`;
+  document.getElementById('mr-info').innerHTML =
+    `Lote <b style="color:var(--texto)">L${s.cfg.lote}</b> &nbsp;·&nbsp; ` +
+    `<b style="color:var(--texto)">${s.processadas}</b> figurinhas &nbsp;·&nbsp; ` +
+    `<b style="color:var(--texto)">${s.kitsProntos.length}</b> kit(s) pronto(s)<br>` +
+    `Salvo <b style="color:var(--texto)">${tempoStr}</b>`;
+  const m = document.getElementById('modal-restaurar');
+  m.style.display = 'flex';
+}
+
+function restaurarSessao() {
+  const s = _sessaoParaRestaurar;
+  if (!s) return;
+  document.getElementById('modal-restaurar').style.display = 'none';
+  cfg = s.cfg;
+  kits = s.kits;
+  kitsSets = s.kits.map(k => new Set(k));
+  kitsProntos = s.kitsProntos || [];
+  especiais = s.especiais || [];
+  listaEspeciais = new Set(s.listaEspeciais || []);
+  extras = s.extras || 0;
+  processadas = s.processadas || 0;
+  limiteTotal = s.limiteTotal || 0;
+  logItems = s.logItems || [];
+  document.getElementById('tela-setup').style.display = 'none';
+  const app = document.getElementById('tela-app');
+  app.style.display = 'flex';
+  iniciarReconhecimento();
+  atualizarUI();
+  renderLog();
+  toast('✅ Sessão restaurada!');
+}
+
+function descartarSessao() {
+  limparEstadoLocal();
+  document.getElementById('modal-restaurar').style.display = 'none';
+  _sessaoParaRestaurar = null;
+}
 
 function salvarEstadoLocal() {
   try {
     localStorage.setItem(_SAVE_KEY, JSON.stringify({
+      v: APP_VERSION,
       cfg, kits, kitsProntos,
       especiais, listaEspeciais: [...listaEspeciais],
       extras, processadas, limiteTotal,

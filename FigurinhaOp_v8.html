@@ -326,6 +326,18 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
   </div>
 </div>
 
+<div id="modal-restaurar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--borda);border-radius:12px;padding:32px;max-width:420px;width:90%;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
+    <div style="font-family:'Archivo Black',sans-serif;font-size:1.1rem;color:var(--amarelo-l);margin-bottom:8px;">Sessão em andamento</div>
+    <div id="mr-info" style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--texto2);margin-bottom:24px;line-height:1.8;"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="restaurarSessao()" style="padding:13px;background:var(--amarelo);color:#000;border:none;border-radius:8px;font-family:'Archivo Black',sans-serif;font-size:0.95rem;cursor:pointer;">↩ Restaurar sessão</button>
+      <button onclick="descartarSessao()" style="padding:13px;background:transparent;color:var(--texto2);border:1px solid var(--borda);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.82rem;cursor:pointer;">🆕 Iniciar novo lote (descarta sessão salva)</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay" tabindex="-1" onkeydown="if(event.key==='Enter'||event.key==='Escape'){event.preventDefault();confirmarPopup();}">
   <div class="popup" id="popup">
     <div class="popup-icone" id="p-icone"></div>
@@ -750,39 +762,24 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('esp-salvo-badge').style.display = '';
   });
 
-  // Restaurar sessão salva automaticamente
+  // Restaurar sessão salva
   try {
     const raw = localStorage.getItem(_SAVE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
       const idadeH = (Date.now() - s.ts) / 3600000;
       if (s && s.cfg && s.kits && idadeH < 24) {
-        const minutos = Math.round((Date.now() - s.ts) / 60000);
-        const tempoStr = minutos < 60 ? `${minutos} min atrás` : `${Math.round(minutos/60)}h atrás`;
-        if (confirm(`⚠️ Sessão em andamento encontrada!\n\nLote L${s.cfg.lote} — ${s.processadas} fig. processadas — ${s.kitsProntos.length} kit(s) prontos\nSalvo ${tempoStr}\n\nRestaurar sessão?`)) {
-          cfg = s.cfg;
-          kits = s.kits;
-          kitsSets = s.kits.map(k => new Set(k));
-          kitsProntos = s.kitsProntos || [];
-          especiais = s.especiais || [];
-          listaEspeciais = new Set(s.listaEspeciais || []);
-          extras = s.extras || 0;
-          processadas = s.processadas || 0;
-          limiteTotal = s.limiteTotal || 0;
-          logItems = s.logItems || [];
-          document.getElementById('tela-setup').style.display = 'none';
-          document.getElementById('tela-app').style.display = 'block';
-          document.getElementById('top-lote').textContent = `L${cfg.lote}`;
-          document.getElementById('top-operador').textContent = cfg.operador;
-          setInterval(() => { document.getElementById('top-hora').textContent = new Date().toLocaleTimeString('pt-BR'); }, 1000);
-          iniciarReconhecimento();
-          atualizarUI();
-          renderLog();
-          toast('✅ Sessão restaurada automaticamente!');
+        if (s.v !== APP_VERSION) {
+          // Versão antiga → descarta automaticamente sem perguntar
+          limparEstadoLocal();
+        } else {
+          mostrarModalRestaurar(s);
         }
+      } else {
+        limparEstadoLocal();
       }
     }
-  } catch(e) {}
+  } catch(e) { limparEstadoLocal(); }
 });
 
 function limparEspeciais() {
@@ -1470,10 +1467,61 @@ function cmdPronto() {
 // AUTO-SAVE — localStorage
 // ══════════════════════════════════════════
 const _SAVE_KEY = 'figurinhaop_sessao';
+const APP_VERSION = 'v8.3';
+
+// ══════════════════════════════════════════
+// MODAL RESTAURAR SESSÃO
+// ══════════════════════════════════════════
+let _sessaoParaRestaurar = null;
+
+function mostrarModalRestaurar(s) {
+  _sessaoParaRestaurar = s;
+  const minutos = Math.round((Date.now() - s.ts) / 60000);
+  const tempoStr = minutos < 60 ? `${minutos} min atrás` : `${Math.round(minutos/60)}h atrás`;
+  document.getElementById('mr-info').innerHTML =
+    `Lote <b style="color:var(--texto)">L${s.cfg.lote}</b> &nbsp;·&nbsp; ` +
+    `<b style="color:var(--texto)">${s.processadas}</b> figurinhas &nbsp;·&nbsp; ` +
+    `<b style="color:var(--texto)">${s.kitsProntos.length}</b> kit(s) pronto(s)<br>` +
+    `Salvo <b style="color:var(--texto)">${tempoStr}</b>`;
+  const m = document.getElementById('modal-restaurar');
+  m.style.display = 'flex';
+}
+
+function restaurarSessao() {
+  const s = _sessaoParaRestaurar;
+  if (!s) return;
+  document.getElementById('modal-restaurar').style.display = 'none';
+  cfg = s.cfg;
+  kits = s.kits;
+  kitsSets = s.kits.map(k => new Set(k));
+  kitsProntos = s.kitsProntos || [];
+  especiais = s.especiais || [];
+  listaEspeciais = new Set(s.listaEspeciais || []);
+  extras = s.extras || 0;
+  processadas = s.processadas || 0;
+  limiteTotal = s.limiteTotal || 0;
+  logItems = s.logItems || [];
+  document.getElementById('tela-setup').style.display = 'none';
+  document.getElementById('tela-app').style.display = 'block';
+  document.getElementById('top-lote').textContent = `L${cfg.lote}`;
+  document.getElementById('top-operador').textContent = cfg.operador;
+  setInterval(() => { document.getElementById('top-hora').textContent = new Date().toLocaleTimeString('pt-BR'); }, 1000);
+  iniciarReconhecimento();
+  atualizarUI();
+  renderLog();
+  toast('✅ Sessão restaurada!');
+}
+
+function descartarSessao() {
+  limparEstadoLocal();
+  document.getElementById('modal-restaurar').style.display = 'none';
+  _sessaoParaRestaurar = null;
+}
 
 function salvarEstadoLocal() {
   try {
     localStorage.setItem(_SAVE_KEY, JSON.stringify({
+      v: APP_VERSION,
       cfg, kits, kitsProntos,
       especiais, listaEspeciais: [...listaEspeciais],
       extras, processadas, limiteTotal,
