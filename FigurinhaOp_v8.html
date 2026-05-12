@@ -187,21 +187,12 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
         <input type="text" id="cfg-operador" placeholder="Nome do operador">
       </div>
       <div class="campo">
-        <label>Número do Lote</label>
-        <input type="number" id="cfg-lote" value="1" min="1">
+        <label>Lote</label>
+        <div style="font-family:'Archivo Black',sans-serif;font-size:1.1rem;color:var(--amarelo-l);padding:8px 12px;background:var(--bg3);border:1px solid var(--borda);border-radius:6px;">L<span id="cfg-lote-display">1</span> <span style="font-size:0.65rem;color:var(--texto2);font-weight:normal">(automático)</span></div>
       </div>
       <div class="campo">
         <label>Figurinhas por Kit</label>
-        <input type="number" id="cfg-kit" value="50" min="1" oninput="recalcularKits()">
-      </div>
-      <div class="campo">
-        <label>Pacotes no Lote</label>
-        <input type="number" id="cfg-pacotes" value="100" min="1" oninput="recalcularKits()">
-      </div>
-      <div class="campo campo-full" style="flex-direction:row;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--borda);border-radius:6px;padding:9px 14px;">
-        <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--texto2);letter-spacing:1px;text-transform:uppercase;">Kits Esperados</span>
-        <span id="kits-esperados-calc" style="font-family:'Archivo Black',sans-serif;font-size:1.1rem;color:var(--amarelo-l)">14</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--borda);margin-left:auto">calculado · 7 fig/pacote</span>
+        <input type="number" id="cfg-kit" value="50" min="1">
       </div>
       <div class="campo campo-full">
         <label>Figurinhas Especiais <span class="salvo-badge" id="esp-salvo-badge" style="display:none">✓ salvo</span></label>
@@ -228,20 +219,16 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
       </div>
       <div class="guia-corpo" id="guia-corpo">
         <div class="guia-passo">
-          <div class="guia-passo-titulo">✅ Solução — duplo clique no .bat</div>
-          <p>Na mesma pasta está o arquivo <b>Iniciar_FigurinhaOp.bat</b>. Dê duplo clique — abre o servidor e lança o Chrome automaticamente. Clique em <b>Permitir</b> quando pedir o microfone.</p>
+          <div class="guia-passo-titulo">🌐 Usando via Netlify (copamanager.netlify.app)</div>
+          <p>Acesse pelo <b>Chrome</b>. Na primeira vez, o Chrome pedirá permissão para usar o microfone — clique em <b>Permitir</b>.</p>
         </div>
         <div class="guia-passo">
-          <div class="guia-passo-titulo">⚠️ Se aparecer "Windows protegeu seu PC"</div>
-          <p>Clique em <b>"Mais informações"</b> → <b>"Executar assim mesmo"</b>.</p>
+          <div class="guia-passo-titulo">🔒 Se o Chrome bloqueou o microfone</div>
+          <p>Clique no ícone de cadeado/câmera na barra de endereços → <b>Permissões do site</b> → <b>Microfone: Permitir</b>.</p>
         </div>
         <div class="guia-passo">
-          <div class="guia-passo-titulo">❌ Se o Chrome não abrir sozinho</div>
-          <code class="code-block">http://localhost:8080/FigurinhaOp_v8.html</code>
-        </div>
-        <div class="guia-passo">
-          <div class="guia-passo-titulo">❌ Se der erro "python não reconhecido"</div>
-          <p>Instale em <b>python.org</b> marcando <b>"Add Python to PATH"</b>.</p>
+          <div class="guia-passo-titulo">💻 Usando localmente (.bat)</div>
+          <p>Dê duplo clique em <b>Iniciar_FigurinhaOp.bat</b>. Se aparecer "Windows protegeu seu PC": <b>Mais informações → Executar assim mesmo</b>.</p>
         </div>
       </div>
     </div>
@@ -272,7 +259,6 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
       <div class="stat-sep"></div>
       <div class="stat"><span class="stat-label">Kit Atual</span><span class="stat-val verde" id="s-kit-atual">0/50</span></div>
       <div class="stat"><span class="stat-label">Kits Prontos</span><span class="stat-val verde" id="s-prontos">0</span></div>
-      <div class="stat"><span class="stat-label">Esperados</span><span class="stat-val cinza" id="s-esp-num">—</span></div>
       <div class="stat-sep"></div>
       <div class="stat"><span class="stat-label">Em Fila</span><span class="stat-val amarelo" id="s-fila">0</span></div>
       <div class="stat"><span class="stat-label">Especiais</span><span class="stat-val roxo" id="s-esp">0</span></div>
@@ -330,6 +316,7 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
         <div class="side-actions">
           <button class="btn" onclick="cmdVoltar()">↩ Voltar</button>
           <button class="btn" onclick="cmdZerar()">↺ Zerar Kit</button>
+          <button class="btn" onclick="mudarTamanhoKit()">✏ Kit</button>
           <button class="btn btn-primary" onclick="exportarExcel()">↓ Exportar Excel</button>
           <button class="btn" onclick="exportarEstado()">↓ Estado p/ próximo lote</button>
           <button class="btn btn-danger" onclick="encerrarLote()">⏹ Encerrar Lote</button>
@@ -402,6 +389,7 @@ const PAIS_CODIGO = {
   'bosnia e herzegovina':'BIH','bosnia':'BIH','bih':'BIH',
   'bos':'BIH','herzegovina':'BIH','bośnia':'BIH',
   'bh':'BIH', // pos 1+3 (usuário solicitou: "Bh" → BIH)
+  'bósnia':'BIH','bosnia':'BIH',
   'bosnea':'BIH', // Chrome ouve "bósnia" como "bosnea"
   'business':'BIH', // Chrome delira completamente com "bih" soletrado
   'beh':'BIH','b e h':'BIH', // Chrome ouve B-I-H soletrado como "b e h"
@@ -432,6 +420,7 @@ const PAIS_CODIGO = {
   'congo dr':'COD','congo':'COD','cod':'COD',
   'dr congo':'COD','congo democratico':'COD','republica congo':'COD',
   'combo':'COD', // Chrome ouve "Congo" como "combo"
+  'como':'COD',
 
   // ── COL — Colômbia ───────────────────────────────────────────────────
   'colombia':'COL','col':'COL','colombiana':'COL','colombiano':'COL',
@@ -508,6 +497,7 @@ const PAIS_CODIGO = {
   'aí':'HAI','ai':'HAI', // Chrome pode ouvir "hai" como "aí"
   'hey':'HAI','hay':'HAI','haí':'HAI',
   'a i':'HAI','ah i':'HAI','ái':'HAI',
+  'ai t':'HAI',
 
   // ── IRN — Irã ────────────────────────────────────────────────────────
   'ira':'IRN','iran':'IRN','irn':'IRN',
@@ -549,6 +539,7 @@ const PAIS_CODIGO = {
   'mexico':'MEX','mex':'MEX','mexicano':'MEX',
   'mexicanos':'MEX','el tri':'MEX',
   'nex':'MEX', // confusão M/N — "mex" → "nex"
+  'mexe com':'MEX','mexecom':'MEX',
 
   // ── NED — Holanda ────────────────────────────────────────────────────
   'holanda':'NED','netherlands':'NED','ned':'NED',
@@ -733,11 +724,14 @@ let micAtivo = false, micRodando = false, reconhecimento = null;
 // ══════════════════════════════════════════
 // SETUP
 // ══════════════════════════════════════════
-function recalcularKits() {
-  const p = parseInt(document.getElementById('cfg-pacotes').value) || 0;
-  const k = parseInt(document.getElementById('cfg-kit').value) || 1;
-  document.getElementById('kits-esperados-calc').textContent = Math.floor((p * 7) / k);
+function getLoteAtual() {
+  return parseInt(localStorage.getItem('figurinhaop_lote') || '1');
 }
+function incrementarLote() {
+  localStorage.setItem('figurinhaop_lote', getLoteAtual() + 1);
+}
+
+function recalcularKits() {} // vazio, mantido por compatibilidade
 
 function toggleGuia() {
   const corpo = document.getElementById('guia-corpo');
@@ -745,7 +739,7 @@ function toggleGuia() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  recalcularKits();
+  document.getElementById('cfg-lote-display').textContent = getLoteAtual();
   const salvas = localStorage.getItem('figurinhaop_especiais');
   if (salvas) {
     document.getElementById('cfg-especiais').value = salvas;
@@ -835,19 +829,59 @@ function processarKitsHerdados() {
   while (changed) {
     changed = false;
     if (kits[0].length >= cfg.tamanhoKit) {
+      const kitFigs = kits[0].splice(0, cfg.tamanhoKit); // apenas tamanhoKit stickers
+      kitsSets[0] = new Set(kits[0]); // reconstruir set com o excesso
       const kitNum = kitsProntos.length + 1;
       const kitLabel = `L${cfg.lote}.KT${cfg.tamanhoKit}-${kitNum}`;
-      const kitFigs = [...kits[0]];
       kitsProntos.push({ label: kitLabel, figs: kitFigs });
       log('kit-done', '🏆', `Kit ${kitLabel} completo! (herdado)`);
       completados.push({ label: kitLabel, figs: kitFigs });
-      kits.shift(); kitsSets.shift();
-      if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      if (kits[0].length === 0) {
+        kits.shift(); kitsSets.shift();
+        if (!kits.length) { kits.push([]); kitsSets.push(new Set()); }
+      }
       changed = true;
     }
   }
   if (!completados.length && kits[0].length === 0) return null;
   return { completados, noKit0: kits[0].length };
+}
+
+function mudarTamanhoKit() {
+  const novoStr = prompt(`Tamanho atual do kit: ${cfg.tamanhoKit} figurinhas\nNovo tamanho:`);
+  if (!novoStr) return;
+  const novo = parseInt(novoStr);
+  if (!novo || novo < 1 || isNaN(novo) || novo === cfg.tamanhoKit) return;
+  const antigo = cfg.tamanhoKit;
+  cfg.tamanhoKit = novo;
+
+  if (kits[0].length > novo) {
+    // Completar kit com as primeiras `novo` figurinhas
+    const kitFigs = kits[0].splice(0, novo);
+    kitsSets[0] = new Set(kits[0]);
+    const kitNum = kitsProntos.length + 1;
+    const kitLabel = `L${cfg.lote}.KT${novo}-${kitNum}`;
+    kitsProntos.push({ label: kitLabel, figs: kitFigs });
+    log('kit-done', '🏆', `Kit ${kitLabel} completo! (mudança de tamanho)`);
+    const excesso = [...kits[0]];
+    // Mostrar popup informando quais figurinhas retirar
+    _exibirPopup({
+      tipo: 'kit', icone: '⚠️',
+      titulo: `Kit redimensionado: ${antigo} → ${novo}`,
+      conteudo: `<div style="text-align:left;font-size:0.8rem;margin-bottom:8px">
+        Kit <b>${kitLabel}</b> concluído com ${novo} figurinhas.<br><br>
+        <b style="color:var(--amarelo-l)">Retire ${excesso.length} figurinha(s)</b> que ficam no novo Kit em processamento:
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--verde);word-break:break-all">${excesso.join(', ')}</div>`,
+      hint: 'ENTER ou "ok" para confirmar',
+      btns: [{ label: '✓ Entendido', cls: 'pb-verde' }],
+      tts: `Kit redimensionado. Retire ${excesso.length} figurinhas para o novo kit.`
+    });
+  } else {
+    toast(`Kit redimensionado: ${antigo} → ${novo} fig`);
+  }
+  atualizarUI();
+  log('cmd', '✏️', `Tamanho do kit alterado: ${antigo} → ${novo}`);
 }
 
 function mostrarPopupHeranca(completados, noKit0) {
@@ -871,11 +905,9 @@ function mostrarPopupHeranca(completados, noKit0) {
 
 function iniciarLote() {
   cfg.operador      = document.getElementById('cfg-operador').value.trim() || 'Operador';
-  cfg.lote          = parseInt(document.getElementById('cfg-lote').value) || 1;
+  cfg.lote          = getLoteAtual();
   cfg.tamanhoKit    = parseInt(document.getElementById('cfg-kit').value) || 50;
-  cfg.totalPacotes  = parseInt(document.getElementById('cfg-pacotes').value) || 100;
-  cfg.kitsEsperados = Math.floor((cfg.totalPacotes * 7) / cfg.tamanhoKit);
-  limiteTotal = cfg.totalPacotes * 7; // reset ao iniciar lote
+  limiteTotal = 999999; // sem limite fixo — auto-lote
 
   // Especiais: aceita IDs de figurinha (BRA10, POR15...)
   listaEspeciais = new Set();
@@ -891,7 +923,6 @@ function iniciarLote() {
   document.getElementById('tela-app').style.display   = 'block';
   document.getElementById('top-lote').textContent      = `L${cfg.lote}`;
   document.getElementById('top-operador').textContent  = cfg.operador;
-  document.getElementById('s-esp-num').textContent     = cfg.kitsEsperados;
   setInterval(() => { document.getElementById('top-hora').textContent = new Date().toLocaleTimeString('pt-BR'); }, 1000);
 
   iniciarReconhecimento();
@@ -1387,7 +1418,7 @@ function cmdVoltar() {
   if (entrada.tipo === 'extra') {
     extras = Math.max(0, extras - 1);
     processadas = Math.max(0, processadas - 1);
-    limiteTotal = Math.max(cfg.totalPacotes * 7, limiteTotal - 1);
+    limiteTotal = Math.max(0, limiteTotal - 1);
     log('cmd', '↩️', 'Extra removida');
     atualizarUI();
     toast('Extra removida');
@@ -1478,11 +1509,9 @@ function refazerKitPronto(idx) {
 }
 
 function atualizarUI() {
-  // limiteTotal é variável de estado global (cresce +1 a cada extra)
-  const pctLote = processadas / limiteTotal;
   const procEl = document.getElementById('s-proc');
-  procEl.textContent = `${processadas}/${limiteTotal}`;
-  procEl.className = `stat-val ${pctLote >= 1 ? 'alerta' : pctLote >= 0.9 ? 'amarelo' : 'azul'}`;
+  procEl.textContent = `${processadas}`;
+  procEl.className = `stat-val azul`;
 
   document.getElementById('s-pac').textContent       = Math.floor(processadas / 7);
   document.getElementById('s-kit-atual').textContent = `${kits[0]?.length || 0}/${cfg.tamanhoKit}`;
@@ -1721,6 +1750,7 @@ async function encerrarLote() {
     baixar(estadoStr, nomeTXT, 'text/plain');
   }
   limparEstadoLocal();
+  incrementarLote();
   setTimeout(() => location.reload(), 800);
 }
 
