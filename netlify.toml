@@ -1,0 +1,39 @@
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+
+# URLs sem .html e minúsculas → arquivos corretos
+[[redirects]]
+  from = "/figurinhaop_v8"
+  to = "/FigurinhaOp_v8.html"
+  status = 200
+
+[[redirects]]
+  from = "/FigurinhaOp_v8"
+  to = "/FigurinhaOp_v8.html"
+  status = 200
+
+[[redirects]]
+  from = "/figurinhaop_iphone"
+  to = "/FigurinhaOp_iPhone.html"
+  status = 200
+
+[[redirects]]
+  from = "/FigurinhaOp_iPhone"
+  to = "/FigurinhaOp_iPhone.html"
+  status = 200
+
+[[redirects]]
+  from = "/figurinhaop_ocr"
+  to = "/FigurinhaOp_OCR.html"
+  status = 200
+
+[[redirects]]
+  from = "/FigurinhaOp_OCR"
+  to = "/FigurinhaOp_OCR.html"
+  status = 200
