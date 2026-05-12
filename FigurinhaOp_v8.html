@@ -143,7 +143,7 @@ body{background:var(--bg);color:var(--texto);font-family:'Archivo',system-ui,san
 .log-item.cmd{color:var(--azul);}
 .log-item.kit-done{color:var(--cyan);}
 .side-actions{padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.15s;outline:none;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.06s;outline:none;}
 .overlay.vis{opacity:1;pointer-events:all;}
 .popup{background:var(--bg2);border-radius:14px;padding:24px 28px;max-width:420px;width:90%;text-align:center;position:relative;overflow:hidden;animation:popupIn 0.2s cubic-bezier(0.34,1.56,0.64,1);}
 @keyframes popupIn{from{transform:scale(0.88) translateY(8px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
@@ -1399,10 +1399,17 @@ function _exibirPopup(dados) {
   overlay.classList.add('vis');
   overlay.focus();
   if (dados.tts) falar(dados.tts, 3.0);
+  // Popups de "repetida" fecham automaticamente (não precisam de confirmação manual)
+  if (dados.tipo === 'rep') {
+    _autoCloseTimer = setTimeout(() => confirmarPopup(), 1200);
+  }
 }
+
+let _autoCloseTimer = null;
 
 function confirmarPopup() {
   if (!popupAtual) return;
+  if (_autoCloseTimer) { clearTimeout(_autoCloseTimer); _autoCloseTimer = null; }
   popupAtual = null;
   document.getElementById('overlay').classList.remove('vis');
   const inp = document.getElementById('teclado-input');
@@ -1410,10 +1417,10 @@ function confirmarPopup() {
   document.getElementById('btn-processar').disabled = false;
   inp.focus();
   if (popupFila.length > 0) {
-    setTimeout(() => { if (popupFila.length > 0) _exibirPopup(popupFila.shift()); }, 280);
+    setTimeout(() => { if (popupFila.length > 0) _exibirPopup(popupFila.shift()); }, 50);
   } else if (filaVoz.length > 0) {
     const pendentes = filaVoz.splice(0);
-    setTimeout(() => pendentes.forEach(adicionarFigurina), 300);
+    setTimeout(() => pendentes.forEach(adicionarFigurina), 50);
   }
 }
 
